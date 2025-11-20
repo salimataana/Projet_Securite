@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HSM Local - Gestion sécurisée des clés</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; text-align: center; }
+        button {
+            padding: 12px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover { background: #2980b9; }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .result {
+            background: #ecf0f1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .success { border-left-color: #2ecc71; }
+        .error { border-left-color: #e74c3c; }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 HSM Local Open Source</h1>
+
+        <div class="section">
+            <button onclick="generateKeys()">🗝️ Générer les clés RSA</button>
+        </div>
+
+        <div class="section">
+            <h3>📝 Signature de données</h3>
+            <textarea id="dataInput" placeholder="Entrez les données à signer..."></textarea>
+            <br>
+            <button onclick="signData()">✍️ Signer les données</button>
+            <button onclick="verifyData()">✅ Vérifier signature</button>
+        </div>
+
+        <div class="section">
+            <h3>🔒 Chiffrement de données</h3>
+            <textarea id="encryptInput" placeholder="Entrez les données à chiffrer..."></textarea>
+            <br>
+            <button onclick="encryptData()">🔐 Chiffrer les données</button>
+            <button onclick="decryptData()">🔓 Déchiffrer données</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function generateKeys() {
+            showResult("⏳ Génération des clés RSA en cours...");
+            const response = await fetch('/generate-keys', {method: 'POST'});
+            const result = await response.json();
+            showResult(result.success ? '✅ ' + result.message + (result.processing_time ? `<br>⏱️ Temps d'exécution: ${result.processing_time}` : '') : '❌ ' + result.error, result.success);
+        }
+
+        async function signData() {
+            const data = document.getElementById('dataInput').value;
+            if (!data) {
+                showResult('❌ Veuillez entrer des données à signer', false);
+                return;
+            }
+
+            showResult("⏳ Signature en cours...");
+            const response = await fetch('/sign', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({data})
+            });
+            const result = await response.json();
+            if (result.success) {
+                showResult(`✅ Signature créée avec succès!<br><br>
+                           <strong>Signature:</strong><br>
+                           <code style="word-break: break-all;">${result.signature}</code><br><br>
+                           ⏱️ <strong>Temps d'exécution:</strong> ${result.processing_time}`, true);
+            } else {
+                showResult('❌ Erreur: ' + result.error, false);
+            }
+        }
+
+        async function verifyData() {
+            const data = document.getElementById('dataInput').value;
+            if (!data) {
+                showResult('❌ Veuillez entrer des données à vérifier', false);
+                return;
+            }
+
+            const signature = prompt('Collez la signature à vérifier:');
+            if (signature) {
+                showResult("⏳ Vérification de la signature...");
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({data, signature})
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showResult(result.valid ? `✅ Signature VALIDE<br>⏱️ Temps d'exécution: ${result.processing_time}` : `❌ Signature INVALIDE<br>⏱️ Temps d'exécution: ${result.processing_time}`, result.valid);
+                } else {
+                    showResult('❌ Erreur: ' + result.error, false);
+                }
+            }
+        }
+
+        async function encryptData() {
+            const data = document.getElementById('encryptInput').value;
+            if (!data) {
+                showResult('❌ Veuillez entrer des données à chiffrer', false);
+                return;
+            }
+
+            showResult("⏳ Chiffrement en cours...");
+            const response = await fetch('/encrypt', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({data})
+            });
+            const result = await response.json();
+            if (result.success) {
+                showResult(`✅ Données chiffrées avec succès!<br><br>
+                           <strong>Données chiffrées:</strong><br>
+                           <code style="word-break: break-all;">${result.encrypted_data}</code><br><br>
+                           ⏱️ <strong>Temps d'exécution:</strong> ${result.processing_time}`, true);
+            } else {
+                showResult('❌ Erreur: ' + result.error, false);
+            }
+        }
+
+        async function decryptData() {
+            const encrypted_data = prompt('Collez les données chiffrées:');
+            if (encrypted_data) {
+                showResult("⏳ Déchiffrement en cours...");
+                const response = await fetch('/decrypt', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({encrypted_data})
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showResult(`✅ Données déchiffrées avec succès!<br><br>
+                               <strong>Données déchiffrées:</strong><br>
+                               <code>${result.decrypted_data}</code><br><br>
+                               ⏱️ <strong>Temps d'exécution:</strong> ${result.processing_time}`, true);
+                } else {
+                    showResult('❌ Erreur: ' + result.error, false);
+                }
+            }
+        }
+
+        function showResult(message, isSuccess = true) {
+            const resultDiv = document.getElementById('results');
+            resultDiv.innerHTML = `<div class="result ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

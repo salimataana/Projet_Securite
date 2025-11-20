@@ -1,0 +1,69 @@
+# 🔐 HSM Local - Guide d'Installation
+
+## 🚀 Installation Rapide
+
+### 1. Installer les paquets nécessaires
+```bash
+sudo apt-get update
+sudo apt-get install softhsm2 opensc
+```
+
+### 2. Cloner le projet
+```bash
+git clone [https://github.com/salimataana/Projet_Securite.git]
+cd Projet_Securite
+```
+
+### 3. Installer les dépendances Python
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configurer son propre HSM
+```bash
+# Créer le dossier pour les tokens
+mkdir tokens
+
+# Créer la configuration
+echo "directories.tokendir = $(pwd)/tokens" > softhsm2.conf
+
+# Initialiser son token personnel
+SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --init-token --slot 0 --label "MonHSM" --pin 1234 --so-pin 5678
+```
+
+### 5. Lancer l'application
+```bash
+python main.py
+```
+
+### 6. Ouvrir dans le navigateur
+```
+http://localhost:5000
+```
+
+## 🎯 Première Utilisation
+
+Dans l'interface web :
+1. **🗝️ Cliquer sur "Générer les clés RSA"**
+2. **✍️ Tester la signature** (écrire un texte → signer → vérifier)
+3. **🔐 Tester le chiffrement** (écrire un message → chiffrer → déchiffrer)
+
+## 🔧 Commandes Utiles
+
+### Vérifier les clés dans le HSM
+```bash
+SOFTHSM2_CONF=./softhsm2.conf pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so --login --pin 1234 --list-objects
+```
+
+### Réinitialiser le HSM
+```bash
+SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --delete-token --token "MonHSM"
+SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --init-token --slot 0 --label "MonHSM" --pin 1234 --so-pin 5678
+```
+
+## ⚠️ Important
+
+- **Chaque utilisateur a son propre coffre HSM unique**
+- **Les clés ne sont jamais partagées**
+- **Ne jamais commit le dossier `tokens/` ou `softhsm2.conf`**
+

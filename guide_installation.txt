@@ -1,69 +1,154 @@
-# 🔐 HSM Local - Guide d'Installation
+# 🔐 GUIDE COMPLET D'INSTALLATION
 
-## 🚀 Installation Rapide
+## 🎯 **CE QUE L'AUTRE PERSONNE DOIT FAIRE CHEZ LUI**
 
-### 1. Installer les paquets nécessaires
+### **1. 📥 TÉLÉCHARGER LE PROJET**
 ```bash
+# Ouvrir le terminal et taper :
+git clone https://github.com/tonnom/Projet_Securite.git
+cd Projet_Securite
+```
+*Remplacer "tonnom" par ton vrai nom GitHub*
+
+### **2. 🛠️ INSTALLER LES PROGRAMMES NÉCESSAIRES**
+```bash
+# Dans le terminal, taper :
 sudo apt-get update
 sudo apt-get install softhsm2 opensc
 ```
+**⚠️ IMPORTANT :**
+- Ça installe le **HSM logiciel** (SoftHSM)
+- Ça installe les **outils pour communiquer** avec le HSM
+- **Mot de passe admin** peut être demandé
 
-### 2. Cloner le projet
-```bash
-git clone [https://github.com/salimataana/Projet_Securite.git]
-cd Projet_Securite
-```
-
-### 3. Installer les dépendances Python
+### **3. 🐍 INSTALLER LES BIBLIOTHÈQUES PYTHON**
 ```bash
 pip install -r requirements.txt
 ```
+**📦 Ça installe :**
+- **Flask** → pour l'interface web
+- **python-pkcs11** → pour parler au HSM
+- **cryptography** → pour le chiffrement
 
-### 4. Configurer son propre HSM
+### **4. 🔧 CONFIGURER SON PROPRE HSM**
 ```bash
-# Créer le dossier pour les tokens
+# Créer le dossier pour ranger les clés
 mkdir tokens
 
-# Créer la configuration
+# Créer le fichier de configuration
 echo "directories.tokendir = $(pwd)/tokens" > softhsm2.conf
 
-# Initialiser son token personnel
+# Créer son coffre-fort personnel
 SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --init-token --slot 0 --label "MonHSM" --pin 1234 --so-pin 5678
 ```
+**🔐 EXPLICATION :**
+- `mkdir tokens` → crée le **coffre-fort**
+- `softhsm2.conf` → **notice d'utilisation** du HSM
+- `softhsm2-util` → **fabrique le coffre** avec un code
 
-### 5. Lancer l'application
+### **5. 🚀 LANCER L'APPLICATION**
 ```bash
 python main.py
 ```
-
-### 6. Ouvrir dans le navigateur
+**✅ NORMALEMENT ÇA AFFICHE :**
 ```
-http://localhost:5000
+✅ HSM connecté
+* Running on http://127.0.0.1:5000
 ```
 
-## 🎯 Première Utilisation
+### **6. 🌐 OUVRIR L'INTERFACE**
+- **Ouvrir Chrome/Firefox**
+- **Taper** : `http://localhost:5000`
+- **L'interface HSM** apparaît
 
-Dans l'interface web :
-1. **🗝️ Cliquer sur "Générer les clés RSA"**
-2. **✍️ Tester la signature** (écrire un texte → signer → vérifier)
-3. **🔐 Tester le chiffrement** (écrire un message → chiffrer → déchiffrer)
+## 🎮 **COMMENT UTILISER L'INTERFACE**
 
-## 🔧 Commandes Utiles
+### **ÉTAPE 1 - CRÉER LES CLÉS**
+1. **Cliquer** sur 🗝️ **"Générer les clés RSA"**
+2. **Attendre** le message "Clés RSA générées avec succès"
+3. **⚠️ NE FAIRE QU'UNE FOIS**
 
-### Vérifier les clés dans le HSM
+### **ÉTAPE 2 - TESTER LA SIGNATURE**
+1. **Écrire** "Bonjour" dans la zone **Signature**
+2. **Cliquer** sur ✍️ **"Signer les données"**
+3. **Copier** la longue signature qui apparaît
+4. **Cliquer** sur ✅ **"Vérifier signature"**
+5. **Coller** la signature → Doit dire "Signature VALIDE"
+
+### **ÉTAPE 3 - TESTER LE CHIFFREMENT**
+1. **Écrire** "Mon secret" dans la zone **Chiffrement**
+2. **Cliquer** sur 🔐 **"Chiffrer les données"**
+3. **Copier** le code secret qui apparaît
+4. **Cliquer** sur 🔓 **"Déchiffrer données"**
+5. **Coller** le code secret → Doit afficher "Mon secret"
+
+## 🆘 **PROBLÈMES COURANTS ET SOLUTIONS**
+
+### **❌ "HSM non connecté"**
 ```bash
-SOFTHSM2_CONF=./softhsm2.conf pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so --login --pin 1234 --list-objects
+# Vérifier que SoftHSM est installé
+softhsm2-util --show-slots
+
+# Si erreur, réinstaller
+sudo apt-get install --reinstall softhsm2
 ```
 
-### Réinitialiser le HSM
+### **❌ "Module not found"**
 ```bash
+# Réinstaller les bibliothèques Python
+pip install --force-reinstall -r requirements.txt
+```
+
+### **❌ "Pin incorrect"**
+```bash
+# Recréer le token avec le bon PIN
 SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --delete-token --token "MonHSM"
 SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --init-token --slot 0 --label "MonHSM" --pin 1234 --so-pin 5678
 ```
 
-## ⚠️ Important
+### **❌ "Port 5000 déjà utilisé"**
+```bash
+# Tuer l'ancien processus
+pkill -f "python main.py"
 
-- **Chaque utilisateur a son propre coffre HSM unique**
-- **Les clés ne sont jamais partagées**
-- **Ne jamais commit le dossier `tokens/` ou `softhsm2.conf`**
+# Ou changer le port dans main.py
+app.run(debug=True, host='0.0.0.0', port=5001)
+```
 
+## 💡 **ASTUCES IMPORTANTES**
+
+### **🔄 POUR REDÉMARRER**
+```bash
+# Arrêter : Ctrl+C dans le terminal
+# Relancer : python main.py
+# Pas besoin de regénérer les clés à chaque fois !
+```
+
+### **🔍 POUR VOIR LES CLÉS**
+```bash
+SOFTHSM2_CONF=./softhsm2.conf pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so --login --pin 1234 --list-objects
+```
+
+### **🧹 POUR TOUT EFFACER**
+```bash
+# Supprimer le token
+SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --delete-token --token "MonHSM"
+
+# Supprimer les fichiers
+rm -rf tokens/ softhsm2.conf
+
+# Puis recommencer à l'étape 4
+```
+
+## ✅ **QUAND TOUT MARCHE**
+- ✅ **Interface web** fonctionne
+- ✅ **Signature** → création et vérification OK
+- ✅ **Chiffrement** → chiffrement et déchiffrement OK
+- ✅ **Performances** → temps d'exécution affichés
+
+**🎉 FÉLICITATIONS ! Ton HSM personnel est opérationnel !**
+
+---
+**⏱️ TEMPS ESTIMÉ :** 10-15 minutes pour tout installer et tester
+**📶 DIFFICULTÉ :** Débutant (instructions étape par étape)
+**🛡️ SÉCURITÉ :** Clés protégées dans le HSM

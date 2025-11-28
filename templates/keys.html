@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔑 Liste des Clés HSM</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --background: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #1e1b4b 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .keys-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .key-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .key-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .key-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .key-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .key-info {
+            flex: 1;
+        }
+
+        .key-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        .key-type {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .key-details {
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .status-active {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .no-keys {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔑 Gestion des Clés HSM</h1>
+            <p>Visualisez et gérez toutes vos clés cryptographiques sécurisées</p>
+            <a href="/" class="btn">🏠 Retour à l'accueil</a>
+            <button class="btn" onclick="loadKeys()">🔄 Actualiser</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalKeys">0</div>
+                <div class="stat-label">Clés Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeKeys">0</div>
+                <div class="stat-label">Clés Actives</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="rsaKeys">0</div>
+                <div class="stat-label">Clés RSA</div>
+            </div>
+        </div>
+
+        <div id="keysContainer">
+            <div class="loading">
+                <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
+                <p>Chargement des clés...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadKeys() {
+            const container = document.getElementById('keysContainer');
+            container.innerHTML = `
+                <div class="loading">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
+                    <p>Chargement des clés...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/keys');
+                const result = await response.json();
+
+                if (result.success && result.keys.length > 0) {
+                    let html = `<div class="keys-grid">`;
+
+                    result.keys.forEach(key => {
+                        const created = new Date(key.created_at).toLocaleDateString('fr-FR');
+                        const lastUsed = key.last_used ? new Date(key.last_used).toLocaleDateString('fr-FR') : 'Jamais';
+
+                        html += `
+                            <div class="key-card">
+                                <div class="key-header">
+                                    <div class="key-icon">🔐</div>
+                                    <div class="key-info">
+                                        <div class="key-label">${key.label}</div>
+                                        <div class="key-type">${key.type} ${key.size} bits</div>
+                                    </div>
+                                </div>
+                                <div class="key-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">ID:</span>
+                                        <span class="detail-value">#${key.id}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Créée le:</span>
+                                        <span class="detail-value">${created}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Dernier usage:</span>
+                                        <span class="detail-value">${lastUsed}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Statut:</span>
+                                        <span class="detail-value ${key.is_active ? 'status-active' : 'status-inactive'}">
+                                            ${key.is_active ? '🟢 Actif' : '⚪ Inactif'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div>`;
+                    container.innerHTML = html;
+
+                    // Mettre à jour les statistiques
+                    updateStats(result.keys);
+                } else {
+                    container.innerHTML = `
+                        <div class="no-keys">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🔑</div>
+                            <h3>Aucune clé trouvée</h3>
+                            <p style="margin-top: 10px;">Générez votre première clé depuis la page d'accueil</p>
+                            <a href="/" class="btn" style="margin-top: 20px;">⚡ Générer une clé</a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="no-keys">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">❌</div>
+                        <h3>Erreur de chargement</h3>
+                        <p style="margin-top: 10px;">${error.message}</p>
+                        <button class="btn" onclick="loadKeys()" style="margin-top: 20px;">🔄 Réessayer</button>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats(keys) {
+            document.getElementById('totalKeys').textContent = keys.length;
+            document.getElementById('activeKeys').textContent = keys.filter(k => k.is_active).length;
+            document.getElementById('rsaKeys').textContent = keys.filter(k => k.type === 'RSA').length;
+        }
+
+        // Charger les clés au démarrage
+        loadKeys();
+
+        // Actualiser automatiquement toutes les 30 secondes
+        setInterval(loadKeys, 30000);
+    </script>
+</body>
+</html>

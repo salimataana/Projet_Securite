@@ -2,3 +2,49 @@ tokens/
 softhsm2.conf
 .venv/
 softhsm2.conf
+
+
+
+
+# Environnements virtuels Python
+hsm_env/
+env/
+venv/
+.venv/
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Fichiers de configuration
+*.conf
+*.config
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Système
+.DS_Store
+Thumbs.db

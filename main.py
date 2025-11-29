@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 # Configuration de l'environnement pour SoftHSM
 # Cette variable d'environnement indique à SoftHSM où trouver sa configuration
-os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
+#os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
+os.environ['SOFTHSM2_CONF'] = './softhsm2.conf'
 
 # Initialisation du gestionnaire HSM
 # Création d'une instance unique qui gérera toutes les opérations cryptographiques

@@ -1,3 +1,8 @@
 Flask==2.3.3
 python-pkcs11==0.7.0
 cryptography==41.0.3
+
+# Nouvelles dépendances pour l'analyse (installation manuelle, car plus éfficace)
+# pip install "numpy<2"
+# pip install matplotlib
+# pip install Flask==2.3.3 python-pkcs11==0.7.0 cryptography==41.0.3 Pillow

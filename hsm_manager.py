@@ -11,11 +11,14 @@ class HSMManager:
 
     def __init__(self):
         # Chemin vers la bibliothèque SoftHSM2
-        self.lib_path = '/usr/lib/softhsm/libsofthsm2.so'
+        #self.lib_path = '/usr/lib/softhsm/libsofthsm2.so'
+        self.lib_path = '/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so'
         # Session HSM (sera initialisée lors de la connexion)
         self.session = None
         # Configuration de l'environnement pour SoftHSM
-        os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
+        #os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
+        os.environ['SOFTHSM2_CONF'] = './softhsm2.conf'  # Chemin relatif!
+        
 
     def connect(self, pin='1234'):
         """

@@ -4,15 +4,13 @@ softhsm2.conf
 softhsm2.conf
 
 
-
-
 # Environnements virtuels Python
 hsm_env/
 env/
 venv/
 .venv/
 
-# Fichiers Python
+# Cache Python - CORRECTION ICI
 __pycache__/
 *.py[cod]
 *$py.class
@@ -34,9 +32,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# Fichiers de configuration
-*.conf
-*.config
+# Fichiers de configuration (mais gardez softhsm2.conf)
+# *.conf  # COMMENTÉ pour garder softhsm2.conf
+# *.config
 
 # Fichiers temporaires
 *.tmp
@@ -48,3 +46,6 @@ wheels/
 # Système
 .DS_Store
 Thumbs.db
+
+# Dossiers de données HSM
+tokens/

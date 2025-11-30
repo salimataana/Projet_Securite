@@ -153,6 +153,58 @@ def get_all_keys():
         return jsonify({'success': False, 'error': str(e)})
 
 
+@app.route('/api/keys/active', methods=['GET'])
+def get_active_keys():
+    """Récupérer uniquement les clés actives"""
+    try:
+        keys = hsm_manager.get_active_keys()
+        return jsonify({
+            'success': True,
+            'keys': keys,
+            'count': len(keys)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/keys/<key_label>/activate', methods=['POST'])
+def activate_key(key_label):
+    """Activer une clé spécifique"""
+    try:
+        success = hsm_manager.activate_key(key_label)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Clé {key_label} activée avec succès'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Échec de l\'activation de la clé {key_label}'
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/keys/<key_label>/deactivate', methods=['POST'])
+def deactivate_key(key_label):
+    """Désactiver une clé spécifique"""
+    try:
+        success = hsm_manager.deactivate_key(key_label)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Clé {key_label} désactivée avec succès'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Échec de la désactivation de la clé {key_label}'
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @app.route('/api/generate-key', methods=['POST'])
 def api_generate_key():
     try:

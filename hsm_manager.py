@@ -47,7 +47,8 @@ class HSMManager:
                     label = pub_key[Attribute.LABEL]
                     key_type = "RSA"
                     key_size = pub_key[Attribute.MODULUS_BITS] if Attribute.MODULUS_BITS in pub_key else 2048
-                    self.db.add_key(label, key_type, key_size, f"RSA_{key_size}bits")
+                    # CORRECTION : Désactiver les anciennes clés par défaut
+                    self.db.add_key(label, key_type, key_size, f"RSA_{key_size}bits", is_active=False)
                 except Exception as e:
                     print(f"⚠️  Erreur sync clé: {e}")
 
@@ -70,7 +71,8 @@ class HSMManager:
                 store=True
             )
 
-            self.db.add_key(key_label, "RSA", 2048, f"RSA_2048bits")
+            # CORRECTION : Nouvelle clé désactivée par défaut
+            self.db.add_key(key_label, "RSA", 2048, f"RSA_2048bits", is_active=False)
             print(f"✅ Clés générées avec label: {key_label}")
             return public_key, private_key
 
@@ -81,6 +83,36 @@ class HSMManager:
     def get_all_keys(self):
         """Récupérer la liste de toutes les clés"""
         return self.db.get_all_keys()
+
+    def get_active_keys(self):
+        """Récupérer uniquement les clés actives"""
+        return self.db.get_active_keys()
+
+    def activate_key(self, key_label):
+        """Activer une clé spécifique"""
+        try:
+            success = self.db.update_key_status(key_label, True)
+            if success:
+                print(f"✅ Clé '{key_label}' activée")
+            else:
+                print(f"❌ Erreur activation clé '{key_label}'")
+            return success
+        except Exception as e:
+            print(f"❌ Erreur activation: {e}")
+            return False
+
+    def deactivate_key(self, key_label):
+        """Désactiver une clé spécifique"""
+        try:
+            success = self.db.update_key_status(key_label, False)
+            if success:
+                print(f"✅ Clé '{key_label}' désactivée")
+            else:
+                print(f"❌ Erreur désactivation clé '{key_label}'")
+            return success
+        except Exception as e:
+            print(f"❌ Erreur désactivation: {e}")
+            return False
 
     def sign_data(self, data, key_label=None):
         """Signer des données avec une clé spécifique"""
@@ -107,6 +139,12 @@ class HSMManager:
             else:
                 private_key = private_keys[0]
                 key_label = getattr(private_key, 'label', 'default')
+
+            # CORRECTION : Vérifier si la clé est active
+            key_info = self.db.get_key(key_label)
+            if not key_info or not key_info.get('is_active', False):
+                print(f"❌ Clé '{key_label}' n'est pas active")
+                return None
 
             signature = private_key.sign(
                 data.encode('utf-8'),
@@ -154,6 +192,12 @@ class HSMManager:
                 public_key = public_keys[0]
                 key_label = getattr(public_key, 'label', 'default')
                 print(f"🔑 Utilisation de la clé par défaut: {key_label}")
+
+            # CORRECTION : Vérifier si la clé est active
+            key_info = self.db.get_key(key_label)
+            if not key_info or not key_info.get('is_active', False):
+                print(f"❌ Clé '{key_label}' n'est pas active")
+                return False
 
             signature_bytes = bytes.fromhex(signature)
 
@@ -208,6 +252,12 @@ class HSMManager:
                 public_key = public_keys[0]
                 key_label = getattr(public_key, 'label', 'default')
 
+            # CORRECTION : Vérifier si la clé est active
+            key_info = self.db.get_key(key_label)
+            if not key_info or not key_info.get('is_active', False):
+                print(f"❌ Clé '{key_label}' n'est pas active")
+                return None
+
             encrypted_data = public_key.encrypt(
                 data.encode('utf-8'),
                 mechanism=Mechanism.RSA_PKCS
@@ -249,6 +299,12 @@ class HSMManager:
             else:
                 private_key = private_keys[0]
                 key_label = getattr(private_key, 'label', 'default')
+
+            # CORRECTION : Vérifier si la clé est active
+            key_info = self.db.get_key(key_label)
+            if not key_info or not key_info.get('is_active', False):
+                print(f"❌ Clé '{key_label}' n'est pas active")
+                return None
 
             encrypted_data = bytes.fromhex(encrypted_data_hex)
             decrypted_data = private_key.decrypt(
@@ -298,4 +354,4 @@ class HSMManager:
         db_keys = self.db.get_all_keys()
         print(f"DB - Clés enregistrées: {len(db_keys)}")
         for key in db_keys:
-            print(f"  - {key['label']} ({key['type']}_{key['size']}bits)")
+            print(f"  - {key['label']} ({key['type']}_{key['size']}bits) - Actif: {key.get('is_active', False)}")

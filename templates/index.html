@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 HSM Crypto Manager - Sécurité Avancée</title>
+    <title>HSM Crypto Manager - Sécurité Avancée</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -144,6 +144,11 @@
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
         .textarea {
             width: 100%;
             min-height: 120px;
@@ -248,10 +253,26 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 10px;
-            padding: 10px;
+            padding: 15px;
             background: #0f172a;
             border-radius: 8px;
             border-left: 4px solid var(--primary);
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-active {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: var(--text-secondary);
         }
 
         @media (max-width: 768px) {
@@ -286,6 +307,10 @@
                 align-items: flex-start;
                 gap: 8px;
             }
+
+            .key-actions {
+                flex-direction: column;
+            }
         }
 
         .pulse {
@@ -312,11 +337,11 @@
     <div class="container">
         <!-- En-tête -->
         <div class="header fade-in">
-            <h1>🔐 HSM Crypto Manager</h1>
+            <h1>HSM Crypto Manager</h1>
             <p>Sécurité cryptographique de niveau entreprise avec HSM local</p>
             <div class="nav-buttons">
-                <a href="/keys" class="btn btn-secondary">🔑 Voir les Clés</a>
-                <a href="/" class="btn">🏠 Accueil</a>
+                <a href="/keys" class="btn btn-secondary">Voir les Clés</a>
+                <a href="/" class="btn">Accueil</a>
             </div>
         </div>
 
@@ -343,13 +368,21 @@
                     <div style="color: var(--text-secondary); font-size: 0.8rem;">
                         Dernier usage: <span id="currentKeyUsage">Jamais</span>
                     </div>
-                    <div style="color: var(--success); font-size: 0.8rem;">
-                        Statut: <span id="currentKeyStatus">🟢 Actif</span>
+                    <div style="font-size: 0.8rem;">
+                        Statut: <span id="currentKeyStatus" class="status-active">Actif</span>
                     </div>
                 </div>
             </div>
+            <div id="keyActions" class="key-actions" style="display: none;">
+                <button class="btn btn-success" onclick="activateCurrentKey()" id="activateBtn">
+                    Activer la clé
+                </button>
+                <button class="btn btn-warning" onclick="deactivateCurrentKey()" id="deactivateBtn">
+                    Désactiver la clé
+                </button>
+            </div>
             <button class="btn btn-secondary" onclick="loadKeys()" style="margin-top: 10px;">
-                🔄 Actualiser la liste
+                Actualiser la liste
             </button>
         </div>
 
@@ -363,7 +396,7 @@
                 Génère une paire de clés RSA 2048 bits sécurisée dans le HSM
             </p>
             <button class="btn pulse" onclick="generateKeys()">
-                ⚡ Générer les Clés RSA
+                Générer les Clés RSA
             </button>
         </div>
 
@@ -383,10 +416,10 @@
             ></textarea>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="signData()">
-                    ✍️ Signer les Données
+                    Signer les Données
                 </button>
                 <button class="btn btn-secondary" onclick="verifyData()">
-                    ✅ Vérifier Signature
+                    Vérifier Signature
                 </button>
             </div>
         </div>
@@ -407,10 +440,10 @@
             ></textarea>
             <div class="btn-group">
                 <button class="btn" onclick="encryptData()">
-                    🔐 Chiffrer les Données
+                    Chiffrer les Données
                 </button>
                 <button class="btn btn-secondary" onclick="decryptData()">
-                    🔓 Déchiffrer Données
+                    Déchiffrer Données
                 </button>
             </div>
         </div>
@@ -427,7 +460,8 @@
         window.onload = loadKeys;
 
         async function loadKeys() {
-            const previousSelection = currentSelectedKey; // Mémoriser avant
+            // CORRECTION : Récupérer la clé sélectionnée depuis le localStorage
+            const savedSelection = localStorage.getItem('selectedKey');
 
             try {
                 const response = await fetch('/api/keys');
@@ -437,9 +471,14 @@
                     availableKeys = result.keys;
                     updateKeySelector();
 
-                    // Restaurer la sélection précédente ou prendre la première
-                    if (previousSelection && availableKeys.find(key => key.label === previousSelection)) {
-                        document.getElementById('keySelector').value = previousSelection;
+                    // CORRECTION : Priorité à la clé sauvegardée depuis la liste
+                    if (savedSelection && availableKeys.find(key => key.label === savedSelection)) {
+                        document.getElementById('keySelector').value = savedSelection;
+                        // Nettoyer le localStorage après utilisation
+                        localStorage.removeItem('selectedKey');
+                        console.log(`🔑 Clé restaurée depuis localStorage: ${savedSelection}`);
+                    } else if (currentSelectedKey && availableKeys.find(key => key.label === currentSelectedKey)) {
+                        document.getElementById('keySelector').value = currentSelectedKey;
                     } else if (availableKeys.length > 0) {
                         document.getElementById('keySelector').value = availableKeys[0].label;
                     }
@@ -464,7 +503,7 @@
             availableKeys.forEach(key => {
                 const option = document.createElement('option');
                 option.value = key.label;
-                option.textContent = `${key.label} (${key.type} ${key.size} bits)`;
+                option.textContent = `${key.label} (${key.type} ${key.size} bits) - ${key.is_active ? 'Actif' : 'Inactif'}`;
                 selector.appendChild(option);
             });
         }
@@ -472,9 +511,11 @@
         function updateKeyInfo() {
             const selectedKeyLabel = document.getElementById('keySelector').value;
             const keyInfoDiv = document.getElementById('keyInfo');
+            const keyActionsDiv = document.getElementById('keyActions');
 
             if (!selectedKeyLabel) {
                 keyInfoDiv.style.display = 'none';
+                keyActionsDiv.style.display = 'none';
                 return;
             }
 
@@ -488,10 +529,22 @@
                 document.getElementById('currentKeyType').textContent = `${selectedKey.type} ${selectedKey.size} bits`;
                 document.getElementById('currentKeyUsage').textContent = selectedKey.last_used ?
                     new Date(selectedKey.last_used).toLocaleDateString('fr-FR') : 'Jamais';
-                document.getElementById('currentKeyStatus').textContent = selectedKey.is_active ? '🟢 Actif' : '⚪ Inactif';
-                keyInfoDiv.style.display = 'flex';
 
-                console.log(`🔑 Clé mémorisée: ${currentSelectedKey}`);
+                const statusElement = document.getElementById('currentKeyStatus');
+                statusElement.textContent = selectedKey.is_active ? 'Actif' : 'Inactif';
+                statusElement.className = selectedKey.is_active ? 'status-active' : 'status-inactive';
+
+                // Afficher/masquer les boutons d'action
+                const activateBtn = document.getElementById('activateBtn');
+                const deactivateBtn = document.getElementById('deactivateBtn');
+
+                activateBtn.style.display = selectedKey.is_active ? 'none' : 'inline-flex';
+                deactivateBtn.style.display = selectedKey.is_active ? 'inline-flex' : 'none';
+
+                keyInfoDiv.style.display = 'flex';
+                keyActionsDiv.style.display = 'flex';
+
+                console.log(`Clé mémorisée: ${currentSelectedKey}`);
             }
         }
 
@@ -503,50 +556,91 @@
             return currentSelectedKey;
         }
 
-    async function generateKeys() {
-    showResult("⏳ Génération des clés RSA 2048 bits en cours...", "warning");
-    try {
-        // D'abord récupérer le nombre de clés existantes
-        const keysResponse = await fetch('/api/keys');
-        const keysResult = await keysResponse.json();
-        const nextKeyNumber = keysResult.success ? keysResult.keys.length + 1 : 1;
+        async function activateCurrentKey() {
+            const keyLabel = getSelectedKey();
+            if (!keyLabel) return;
 
-        const response = await fetch('/api/generate-key', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({key_label: `key_${nextKeyNumber}`})
-        });
-        const result = await response.json();
-        if (result.success) {
-            showResult(`🎉 <strong>Clés générées avec succès!</strong><br>
-                       <div class="performance">⏱️ ${result.processing_time}</div>
-                       <div style="margin-top: 15px;">
-                           <a href="/keys" class="btn btn-success">🔑 Voir toutes les clés</a>
-                       </div>`, "success");
-            // Recharger la liste des clés
-            setTimeout(loadKeys, 1000);
-        } else {
-            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+            try {
+                const response = await fetch(`/api/keys/${keyLabel}/activate`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`<strong>Clé activée avec succès!</strong><br>La clé <strong>${keyLabel}</strong> est maintenant active.`, "success");
+                    setTimeout(loadKeys, 500);
+                } else {
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
+                }
+            } catch (error) {
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
+            }
         }
-    } catch (error) {
-        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
-    }
-}
+
+        async function deactivateCurrentKey() {
+            const keyLabel = getSelectedKey();
+            if (!keyLabel) return;
+
+            try {
+                const response = await fetch(`/api/keys/${keyLabel}/deactivate`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`<strong>Clé désactivée avec succès!</strong><br>La clé <strong>${keyLabel}</strong> est maintenant inactive.`, "success");
+                    setTimeout(loadKeys, 500);
+                } else {
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
+                }
+            } catch (error) {
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
+            }
+        }
+
+        async function generateKeys() {
+            showResult("Génération des clés RSA 2048 bits en cours...", "warning");
+            try {
+                const keysResponse = await fetch('/api/keys');
+                const keysResult = await keysResponse.json();
+                const nextKeyNumber = keysResult.success ? keysResult.keys.length + 1 : 1;
+
+                const response = await fetch('/api/generate-key', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({key_label: `key_${nextKeyNumber}`})
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showResult(`<strong>Clés générées avec succès!</strong><br>
+                               <div class="performance">${result.processing_time}</div>
+                               <p style="margin-top: 10px;">La nouvelle clé est créée mais <strong>inactive</strong> par défaut.</p>
+                               <div style="margin-top: 15px;">
+                                   <a href="/keys" class="btn btn-success">Voir toutes les clés</a>
+                               </div>`, "success");
+                    setTimeout(loadKeys, 1000);
+                } else {
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
+                }
+            } catch (error) {
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
+            }
+        }
 
         async function signData() {
             const data = document.getElementById('dataInput').value;
             const keyLabel = getSelectedKey();
 
             if (!data) {
-                showResult('❌ Veuillez entrer des données à signer', "error");
+                showResult('Veuillez entrer des données à signer', "error");
                 return;
             }
             if (!keyLabel) {
-                showResult('❌ Veuillez sélectionner une clé', "error");
+                showResult('Veuillez sélectionner une clé', "error");
                 return;
             }
 
-            showResult("⏳ Signature cryptographique en cours...", "warning");
+            showResult("Signature cryptographique en cours...", "warning");
             try {
                 const response = await fetch('/api/sign', {
                     method: 'POST',
@@ -555,18 +649,17 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showResult(`✅ <strong>Signature créée avec succès!</strong><br><br>
+                    showResult(`<strong>Signature créée avec succès!</strong><br><br>
                                <strong>Clé utilisée:</strong> ${result.key_used}<br>
                                <strong>Signature numérique:</strong>
                                <div class="code-block">${result.signature}</div>
-                               <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
-                    // Actualiser les infos de la clé
+                               <div class="performance">${result.processing_time}</div>`, "success");
                     setTimeout(loadKeys, 500);
                 } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
                 }
             } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
             }
         }
 
@@ -575,17 +668,17 @@
             const keyLabel = getSelectedKey();
 
             if (!data) {
-                showResult('❌ Veuillez entrer des données à vérifier', "error");
+                showResult('Veuillez entrer des données à vérifier', "error");
                 return;
             }
             if (!keyLabel) {
-                showResult('❌ Veuillez sélectionner une clé', "error");
+                showResult('Veuillez sélectionner une clé', "error");
                 return;
             }
 
             const signature = prompt('Collez la signature à vérifier:');
             if (signature) {
-                showResult("⏳ Vérification de l'authenticité...", "warning");
+                showResult("Vérification de l'authenticité...", "warning");
                 try {
                     const response = await fetch('/api/verify', {
                         method: 'POST',
@@ -596,21 +689,20 @@
                     if (result.success) {
                         const isValid = result.valid;
                         showResult(isValid ?
-                            `🎉 <strong>Signature VALIDE</strong> - Document authentique<br>
+                            `<strong>Signature VALIDE</strong> - Document authentique<br>
                              <strong>Clé utilisée:</strong> ${result.key_used}<br>
-                             <div class="performance">⏱️ ${result.processing_time}</div>` :
-                            `❌ <strong>Signature INVALIDE</strong> - Document corrompu<br>
+                             <div class="performance">${result.processing_time}</div>` :
+                            `<strong>Signature INVALIDE</strong> - Document corrompu<br>
                              <strong>Clé utilisée:</strong> ${result.key_used}<br>
-                             <div class="performance">⏱️ ${result.processing_time}</div>`,
+                             <div class="performance">${result.processing_time}</div>`,
                             isValid ? "success" : "error"
                         );
-                        // Actualiser les infos de la clé
                         setTimeout(loadKeys, 500);
                     } else {
-                        showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                        showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
                     }
                 } catch (error) {
-                    showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                    showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
                 }
             }
         }
@@ -620,15 +712,15 @@
             const keyLabel = getSelectedKey();
 
             if (!data) {
-                showResult('❌ Veuillez entrer des données à chiffrer', "error");
+                showResult('Veuillez entrer des données à chiffrer', "error");
                 return;
             }
             if (!keyLabel) {
-                showResult('❌ Veuillez sélectionner une clé', "error");
+                showResult('Veuillez sélectionner une clé', "error");
                 return;
             }
 
-            showResult("⏳ Chiffrement RSA en cours...", "warning");
+            showResult("Chiffrement RSA en cours...", "warning");
             try {
                 const response = await fetch('/api/encrypt', {
                     method: 'POST',
@@ -637,18 +729,17 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showResult(`✅ <strong>Données chiffrées avec succès!</strong><br><br>
+                    showResult(`<strong>Données chiffrées avec succès!</strong><br><br>
                                <strong>Clé utilisée:</strong> ${result.key_used}<br>
                                <strong>Message chiffré:</strong>
                                <div class="code-block">${result.encrypted_data}</div>
-                               <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
-                    // Actualiser les infos de la clé
+                               <div class="performance">${result.processing_time}</div>`, "success");
                     setTimeout(loadKeys, 500);
                 } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
                 }
             } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
             }
         }
 
@@ -660,11 +751,11 @@
                 return;
             }
             if (!keyLabel) {
-                showResult('❌ Veuillez sélectionner une clé', "error");
+                showResult('Veuillez sélectionner une clé', "error");
                 return;
             }
 
-            showResult("⏳ Déchiffrement sécurisé en cours...", "warning");
+            showResult("Déchiffrement sécurisé en cours...", "warning");
             try {
                 const response = await fetch('/api/decrypt', {
                     method: 'POST',
@@ -673,18 +764,17 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showResult(`✅ <strong>Données déchiffrées avec succès!</strong><br><br>
+                    showResult(`<strong>Données déchiffrées avec succès!</strong><br><br>
                                <strong>Clé utilisée:</strong> ${result.key_used}<br>
                                <strong>Message original:</strong>
                                <div class="code-block">${result.decrypted_data}</div>
-                               <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
-                    // Actualiser les infos de la clé
+                               <div class="performance">${result.processing_time}</div>`, "success");
                     setTimeout(loadKeys, 500);
                 } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                    showResult(`<strong>Erreur:</strong> ${result.error}`, "error");
                 }
             } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                showResult(`<strong>Erreur réseau:</strong> ${error.message}`, "error");
             }
         }
 

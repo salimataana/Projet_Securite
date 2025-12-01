@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 import sqlite3
 
 from flask import Flask, render_template, request, jsonify
@@ -126,16 +126,21 @@ def api_sign_data():
         if not data:
             return jsonify({'success': False, 'error': 'Aucune donnée fournie'})
 
+        start_time = time.time()  # Démarrage du chronomètre
+
         if key_id:
             signature = hsm_manager.sign_data_with_tracking(data, key_id)
         else:
             signature = hsm_manager.sign_data(data)
 
+        end_time = time.time()  # Fin du chronomètre
+
         if signature:
             return jsonify({
                 'success': True,
                 'signature': signature,
-                'key_id': key_id
+                'key_id': key_id,
+                'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
             })
         else:
             return jsonify({'success': False, 'error': 'Échec de la signature'})
@@ -153,14 +158,18 @@ def api_verify_signature():
         if not data or not signature:
             return jsonify({'success': False, 'error': 'Données ou signature manquantes'})
 
+        start_time = time.time()  # Démarrage du chronomètre
         is_valid = hsm_manager.verify_signature(data, signature)
+        end_time = time.time()  # Fin du chronomètre
 
         return jsonify({
             'success': True,
-            'valid': is_valid
+            'valid': is_valid,
+            'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
 
 
 @app.route('/api/encrypt', methods=['POST'])
@@ -173,19 +182,25 @@ def api_encrypt_data():
         if not data:
             return jsonify({'success': False, 'error': 'Aucune donnée fournie'})
 
+        start_time = time.time()  # Début chronomètre
+
         if key_id:
             encrypted_data = hsm_manager.encrypt_data_with_tracking(data, key_id)
         else:
             encrypted_data = hsm_manager.encrypt_data(data)
 
+        end_time = time.time()  # Fin chronomètre
+
         if encrypted_data:
             return jsonify({
                 'success': True,
                 'encrypted_data': encrypted_data,
-                'key_id': key_id
+                'key_id': key_id,
+                'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
             })
         else:
             return jsonify({'success': False, 'error': 'Échec du chiffrement'})
+
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -200,19 +215,31 @@ def api_decrypt_data():
         if not encrypted_data:
             return jsonify({'success': False, 'error': 'Aucune donnée chiffrée fournie'})
 
+        start_time = time.time()  # Début chronomètre
+
         if key_id:
             decrypted_data = hsm_manager.decrypt_data_with_tracking(encrypted_data, key_id)
         else:
             decrypted_data = hsm_manager.decrypt_data(encrypted_data)
 
+        end_time = time.time()  # Fin chronomètre
+
         if decrypted_data:
+            # Tenter de décoder en UTF-8 pour retourner le texte clair
+            try:
+                decrypted_text = bytes.fromhex(decrypted_data).decode('utf-8')
+            except:
+                decrypted_text = decrypted_data  # fallback si ce n’est pas du texte
+
             return jsonify({
                 'success': True,
-                'decrypted_data': decrypted_data,
-                'key_id': key_id
+                'decrypted_data': decrypted_text,
+                'key_id': key_id,
+                'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
             })
         else:
             return jsonify({'success': False, 'error': 'Échec du déchiffrement'})
+
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -230,10 +257,17 @@ def api_hash_and_sign():
         if not data:
             return jsonify({'success': False, 'error': 'Aucune donnée fournie'})
 
+        start_time = time.time()  # Début chronomètre
         result = hsm_manager.hash_and_sign(data, algorithm, key_id)
+        end_time = time.time()  # Fin chronomètre
+
+        # Ajouter le temps de traitement dans le résultat
+        result['processing_time'] = f"{(end_time - start_time) * 1000:.2f} ms"
+
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
 
 
 @app.route('/api/verify-hash-signature', methods=['POST'])
@@ -248,11 +282,16 @@ def api_verify_hash_signature():
         if not all([data, signature, expected_hash]):
             return jsonify({'success': False, 'error': 'Paramètres manquants'})
 
+        start_time = time.time()  # Début chronomètre
         result = hsm_manager.verify_hash_and_signature(data, signature, expected_hash, algorithm)
+        end_time = time.time()  # Fin chronomètre
+
+        # Ajouter le temps de traitement dans le résultat
+        result['processing_time'] = f"{(end_time - start_time) * 1000:.2f} ms"
+
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
 
 @app.route('/api/compute-hash', methods=['POST'])
 def api_compute_hash():
@@ -264,15 +303,19 @@ def api_compute_hash():
         if not data:
             return jsonify({'success': False, 'error': 'Aucune donnée fournie'})
 
+        start_time = time.time()  # Début chronomètre
         hash_value = hash_manager.compute_hash(data, algorithm)
+        end_time = time.time()  # Fin chronomètre
 
         return jsonify({
             'success': True,
             'hash': hash_value,
-            'algorithm': algorithm
+            'algorithm': algorithm,
+            'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
 
 
 # ==================== API BENCHMARK ET ANALYSE ====================

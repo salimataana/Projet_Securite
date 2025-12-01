@@ -11,11 +11,45 @@ class ExtendedHSMManager(HSMManager):
     Extension du gestionnaire HSM avec les fonctionnalités avancées
     Couvre les chapitres 8 et 9 : Hachage et Signature
     """
+    def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.hash_manager = HashManager()  # <-- Initialisation ici
 
-    def __init__(self):
-        super().__init__()
-        self.hash_manager = HashManager()
-        self.database = None
+    def list_keys(self):
+        """
+        Retourne toutes les clés stockées dans le HSM sous forme de dictionnaire
+        [{'key_id': label, 'public_key': objet_public, 'private_key': objet_privé}, ...]
+        """
+        keys_list = []
+
+        # Vérifier la session
+        if not self.session:
+            self.connect('1234')
+
+        # Lister toutes les clés publiques et privées
+        public_keys = list(self.session.get_objects({
+            pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY
+        }))
+        private_keys = list(self.session.get_objects({
+            pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PRIVATE_KEY
+        }))
+
+        # Associer chaque clé publique à sa clé privée par label
+        for pub_key in public_keys:
+            label = getattr(pub_key, 'label', None)
+            priv_key = None
+            for pk in private_keys:
+                if getattr(pk, 'label', None) == label:
+                    priv_key = pk
+                    break
+            keys_list.append({
+                'key_id': label,
+                'public_key': pub_key,
+                'private_key': priv_key
+            })
+
+        return keys_list
+
 
     def set_database(self, database):
         """Injecte la base de données"""
@@ -149,55 +183,72 @@ class ExtendedHSMManager(HSMManager):
             print(f"⚠️ Erreur tracking signature: {e}")
             return self.sign_data(data)
 
-    def encrypt_data_with_tracking(self, data, key_id=None):
-        """Chiffre des données avec tracking en base"""
-        try:
-            start_time = time.time()
-            encrypted_data = self.encrypt_data(data)
-            end_time = time.time()
+    def get_public_key_by_id(self, key_id):
+        keys = self.list_keys()
+        for key in keys:
+            if key['key_id'] == key_id:
+                return key['public_key']
+        raise ValueError(f"Clé publique {key_id} introuvable")
 
-            if encrypted_data and key_id and self.database:
-                # Enregistre l'opération
+    def get_private_key_by_id(self, key_id):
+        keys = self.list_keys()
+        for key in keys:
+            if key['key_id'] == key_id:
+                return key['private_key']
+        raise ValueError(f"Clé privée {key_id} introuvable")
+
+    def encrypt_data_with_tracking(self, data, key_id=None):
+        """Chiffre avec la clé publique correcte"""
+        try:
+            if not key_id:
+                key_id = self.list_keys()[0]['key_id']
+
+            public_key = self.get_public_key_by_id(key_id)
+
+            data_bytes = data.encode() if isinstance(data, str) else data
+            encrypted_bytes = public_key.encrypt(data_bytes)
+
+            if self.database:
                 self.database.record_operation(
                     key_id=key_id,
                     operation_type='encryption',
                     data_hash=self.hash_manager.compute_hash(data, 'sha256'),
                     signature="N/A pour chiffrement",
-                    processing_time=(end_time - start_time) * 1000,
+                    processing_time=0,
                     success=True
                 )
-                print(f"✅ Chiffrement tracé pour la clé {key_id}")
 
-            return encrypted_data
-
+            return encrypted_bytes.hex(), key_id
         except Exception as e:
-            print(f"⚠️ Erreur tracking chiffrement: {e}")
-            return self.encrypt_data(data)
+            print(f"⚠️ Erreur chiffrement: {e}")
+            return None, key_id
 
     def decrypt_data_with_tracking(self, encrypted_data, key_id=None):
-        """Déchiffre des données avec tracking en base"""
+        """Déchiffre avec la clé privée correspondante"""
         try:
-            start_time = time.time()
-            decrypted_data = self.decrypt_data(encrypted_data)
-            end_time = time.time()
+            if not key_id:
+                key_id = self.list_keys()[0]['key_id']
 
-            if decrypted_data and key_id and self.database:
-                # Enregistre l'opération
+            private_key = self.get_private_key_by_id(key_id)
+
+            encrypted_bytes = bytes.fromhex(encrypted_data) if isinstance(encrypted_data, str) else encrypted_data
+            decrypted_bytes = private_key.decrypt(encrypted_bytes)
+            decrypted_text = decrypted_bytes.decode()
+
+            if self.database:
                 self.database.record_operation(
                     key_id=key_id,
                     operation_type='decryption',
-                    data_hash=self.hash_manager.compute_hash(decrypted_data, 'sha256'),
+                    data_hash=self.hash_manager.compute_hash(decrypted_text, 'sha256'),
                     signature="N/A pour déchiffrement",
-                    processing_time=(end_time - start_time) * 1000,
+                    processing_time=0,
                     success=True
                 )
-                print(f"✅ Déchiffrement tracé pour la clé {key_id}")
 
-            return decrypted_data
-
+            return decrypted_text, key_id
         except Exception as e:
-            print(f"⚠️ Erreur tracking déchiffrement: {e}")
-            return self.decrypt_data(encrypted_data)
+            print(f"⚠️ Erreur déchiffrement: {e}")
+            return None, key_id
 
     def hash_and_sign(self, data, hash_algorithm='sha256', key_id=None):
         """Hachage + Signature avec tracking"""

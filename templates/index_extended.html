@@ -272,36 +272,57 @@
 
 
 
-<!-- Ajoutez cette carte APRÈS la carte "Gestion des Clés Cryptographiques" -->
-
 <!-- Liste des clés disponibles -->
 <div class="card">
     <div class="card-header">
         <div class="icon">📋</div>
-        <h3>Clés Disponibles</h3>
+        <h3>Sélection de la Clé</h3>
     </div>
     <p style="color: var(--text-secondary); margin-bottom: 15px;">
-        Sélectionnez une clé pour les opérations
+        Choisissez la clé à utiliser pour les opérations cryptographiques
     </p>
 
     <!-- Sélecteur de clé -->
-    <div style="margin-bottom: 15px;">
-        <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">
-            Choisir une clé pour les opérations:
-        </label>
-        <select id="keySelector" style="width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid var(--border); margin-bottom: 10px;">
-            <option value="">Chargement des clés...</option>
-        </select>
-        <button class="btn" onclick="loadKeys()" style="margin-bottom: 10px;">
-            🔄 Actualiser la liste
-        </button>
-    </div>
+    <select id="keySelector" class="select" onchange="updateKeyInfo()">
+        <option value="">Chargement des clés...</option>
+    </select>
 
     <!-- Info de la clé sélectionnée -->
-    <div id="keyInfo" style="display: none; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border);">
-        <h4 style="margin-bottom: 10px; color: var(--primary);">📋 Informations de la clé</h4>
-        <div id="keyDetails"></div>
+    <div id="keyInfo" class="key-info" style="display: none; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border); margin-top: 10px;">
+        <div>
+            <strong id="currentKeyLabel">key_1</strong>
+            <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                <span id="currentKeyType">RSA 2048 bits</span>
+            </div>
+        </div>
+        <div style="text-align: right; margin-top: 10px;">
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">
+                Dernier usage: <span id="currentKeyUsage">Jamais</span>
+            </div>
+            <div style="font-size: 0.8rem;">
+                Statut: <span id="currentKeyStatus" class="status-active">Actif</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <button class="btn btn-success" onclick="activateCurrentKey()" id="activateBtn">
+                Activer la clé
+            </button>
+            <button class="btn btn-warning" onclick="deactivateCurrentKey()" id="deactivateBtn">
+                Désactiver la clé
+            </button>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <button class="btn btn-success" onclick="useSelectedKeyForOperation('sign')">✍️ Utiliser pour Signature</button>
+            <button class="btn btn-warning" onclick="useSelectedKeyForOperation('encrypt')">🔐 Utiliser pour Chiffrement</button>
+            <button class="btn btn-info" onclick="useSelectedKeyForOperation('hash-sign')">🔏 Hachage + Signature</button>
+        </div>
     </div>
+
+    <button class="btn btn-secondary" onclick="loadKeys()" style="margin-top: 10px;">
+        🔄 Actualiser la liste
+    </button>
 </div>
 
 
@@ -632,26 +653,50 @@
             }
         }
 
-        function displayPerformanceResults(result) {
-            if (result.success) {
-                let html = `📊 <strong>Analyse des Performances</strong><br><br>`;
-                
-                if (result.performance_chart) {
-                    html += `<div style="width: 100%; max-width: 600px; margin: 15px auto; background: white; border-radius: 10px; padding: 10px;">
-                            <img src="${result.performance_chart}" style="width: 100%; border-radius: 8px;">
-                            </div><br>`;
-                }
-                
-                html += `<strong>Concepts démontrés:</strong><br>`;
-                result.concepts.forEach(concept => {
-                    html += `<div class="concept-item">${concept}</div>`;
-                });
-                
-                showResult(html, 'info');
-            } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
-            }
+function displayPerformanceResults(result) {
+    if (result.success) {
+        let html = `📊 <strong>Analyse des Performances</strong><br><br>`;
+
+        // Affichage du graphique si présent
+        if (result.performance_chart) {
+            html += `
+                <div style="width: 100%; max-width: 600px; margin: 15px auto;
+                            background: white; border-radius: 10px; padding: 10px;">
+                    <img src="${result.performance_chart}"
+                         style="width: 100%; border-radius: 8px;">
+                </div><br>`;
         }
+
+        // Affichage des données envoyées par l'API
+        html += `<strong>Résultats détaillés :</strong><br><br>`;
+
+        if (result.key_size_analysis) {
+            html += `<div class="concept-item">
+                        🔑 <strong>Analyse tailles de clés :</strong><br>
+                        ${JSON.stringify(result.key_size_analysis, null, 2)}
+                     </div><br>`;
+        }
+
+        if (result.hsm_vs_software) {
+            html += `<div class="concept-item">
+                        ⚙️ <strong>HSM vs Logiciel :</strong><br>
+                        ${JSON.stringify(result.hsm_vs_software, null, 2)}
+                     </div><br>`;
+        }
+
+        if (result.encryption_modes) {
+            html += `<div class="concept-item">
+                        🔐 <strong>Modes de chiffrement :</strong><br>
+                        ${JSON.stringify(result.encryption_modes, null, 2)}
+                     </div><br>`;
+        }
+
+        showResult(html, 'info');
+    } else {
+        showResult(`❌ Erreur: ${result.error}`, 'error');
+    }
+}
+
 
         function displayConceptsDemo(result) {
             if (result.success) {

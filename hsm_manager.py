@@ -1,6 +1,7 @@
 import pkcs11
 from pkcs11 import KeyType, Mechanism
 import os
+import time
 
 
 class HSMManager:
@@ -11,14 +12,13 @@ class HSMManager:
 
     def __init__(self):
         # Chemin vers la bibliothèque SoftHSM2
-        #self.lib_path = '/usr/lib/softhsm/libsofthsm2.so'
+        # self.lib_path = '/usr/lib/softhsm/libsofthsm2.so'
         self.lib_path = '/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so'
         # Session HSM (sera initialisée lors de la connexion)
         self.session = None
         # Configuration de l'environnement pour SoftHSM
-        #os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
+        # os.environ['SOFTHSM2_CONF'] = '/home/salimata/PycharmProjects/Projet_Securite/softhsm2.conf'
         os.environ['SOFTHSM2_CONF'] = './softhsm2.conf'  # Chemin relatif!
-        
 
     def connect(self, pin='1234'):
         """
@@ -55,17 +55,17 @@ class HSMManager:
             if not self.session:
                 self.connect('1234')
 
-            # Nettoyer les anciennes clés avant de générer de nouvelles
-            self._clean_keys()
+            # NE PLUS NETTOYER LES ANCIENNES CLÉS - CONSERVER TOUTES LES CLÉS
+            # self._clean_keys()  # LIGNE COMMENTÉE POUR CONSERVER LES CLÉS
 
             # Générer une paire de clés RSA 2048 bits dans le HSM
             public_key, private_key = self.session.generate_keypair(
                 KeyType.RSA,  # Type d'algorithme: RSA
                 2048,  # Taille de la clé: 2048 bits (sécurisé)
-                label="main_key",  # Identifiant de la clé dans le HSM
+                label=f"key_{int(time.time())}",  # Identifiant unique avec timestamp
                 store=True  # Stocker la clé de manière persistante
             )
-            print("✅ Clés générées")
+            print("✅ Clés générées et CONSERVÉES dans le HSM")
             return public_key, private_key
         except Exception as e:
             print(f"❌ Erreur génération: {e}")
@@ -73,21 +73,48 @@ class HSMManager:
 
     def _clean_keys(self):
         """
-        Méthode interne pour supprimer toutes les clés existantes
-        Évite les conflits avec d'anciennes clés
+        MÉTHODE DÉSACTIVÉE - NE PLUS NETTOYER LES ANCIENNES CLÉS
+        Cette méthode est conservée mais ne fait plus rien pour préserver toutes les clés
+        """
+        print("⚠️ Méthode _clean_keys désactivée - TOUTES LES CLÉS SONT CONSERVÉES")
+        # Ne rien faire - conserver toutes les clés
+        return
+
+    def debug_keys(self):
+        """
+        Méthode de débogage pour lister toutes les clés présentes dans le HSM
         """
         try:
-            # Récupérer tous les objets (clés) dans le HSM
-            objects = list(self.session.get_objects())
-            # Parcourir et détruire chaque objet
-            for obj in objects:
+            if not self.session:
+                self.connect('1234')
+
+            print("=== DÉBOGAGE DES CLÉS HSM ===")
+
+            # Lister les clés privées
+            private_keys = list(self.session.get_objects({
+                pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PRIVATE_KEY
+            }))
+            print(f"🔑 {len(private_keys)} clé(s) privée(s) trouvée(s)")
+
+            # Lister les clés publiques
+            public_keys = list(self.session.get_objects({
+                pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY
+            }))
+            print(f"🔐 {len(public_keys)} clé(s) publique(s) trouvée(s)")
+
+            # Afficher les détails des clés
+            for i, key in enumerate(public_keys + private_keys):
                 try:
-                    obj.destroy()
+                    key_type = "PUBLIQUE" if key.object_class == pkcs11.ObjectClass.PUBLIC_KEY else "PRIVÉE"
+                    label = getattr(key, 'label', 'Sans label')
+                    print(f"  {i + 1}. {key_type} - Label: {label}")
                 except:
-                    pass  # Ignorer les erreurs de destruction
-            print("🧹 Anciennes clés nettoyées")
-        except:
-            pass  # Ignorer si aucune clé n'existe
+                    print(f"  {i + 1}. Clé (détails indisponibles)")
+
+            print("=== FIN DÉBOGAGE ===")
+
+        except Exception as e:
+            print(f"❌ Erreur débogage: {e}")
 
     def sign_data(self, data):
         """
@@ -192,41 +219,51 @@ class HSMManager:
             traceback.print_exc()
             return False
 
-    def encrypt_data(self, data):
-        """
-        Chiffrer des données avec la clé publique du HSM
-
-        Args:
-            data (str): Données à chiffrer
-
-        Returns:
-            str: Données chiffrées en hexadécimal ou None en cas d'erreur
-        """
+    def encrypt_data(self, data, key_label=None):
+        """Chiffrer des données avec une clé publique spécifique"""
         try:
             print(f"🔒 Tentative de chiffrement: '{data}'")
 
-            # Vérifier la connexion HSM
             if not self.session:
                 self.connect('1234')
 
-            # Rechercher les clés publiques disponibles
+            # Rechercher les clés publiques
             public_keys = list(self.session.get_objects({
                 pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY
             }))
 
-            # Vérifier qu'une clé publique existe
             if not public_keys:
-                print("❌ Aucune clé publique trouvée pour le chiffrement")
+                print("❌ Aucune clé publique trouvée")
                 return None
 
-            # Prendre la première clé publique disponible
-            public_key = public_keys[0]
+            # Si un label spécifique est fourni, utiliser cette clé
+            if key_label:
+                for key in public_keys:
+                    if getattr(key, 'label', '') == key_label:
+                        public_key = key
+                        break
+                else:
+                    print(f"❌ Clé avec label '{key_label}' non trouvée")
+                    return None
+            else:
+                # Sinon prendre la première clé
+                public_key = public_keys[0]
+
             key_label = getattr(public_key, 'label', 'Inconnu')
             print(f"✅ Clé publique trouvée: {key_label}")
 
+            # Convertir les données en bytes
+            data_bytes = data.encode('utf-8')
+
+            # Vérifier la taille des données (RSA 2048 bits = 245 bytes max)
+            max_size = 245  # Pour RSA 2048 avec padding PKCS
+            if len(data_bytes) > max_size:
+                print(f"⚠️ Données trop longues ({len(data_bytes)} > {max_size} bytes), tronquage automatique")
+                data_bytes = data_bytes[:max_size]
+
             # Chiffrer les données avec RSA
             encrypted_data = public_key.encrypt(
-                data.encode('utf-8'),  # Données à chiffrer
+                data_bytes,  # Données à chiffrer
                 mechanism=Mechanism.RSA_PKCS  # Mécanisme de chiffrement
             )
 
@@ -240,35 +277,36 @@ class HSMManager:
             traceback.print_exc()
             return None
 
-    def decrypt_data(self, encrypted_data_hex):
-        """
-        Déchiffrer des données avec la clé privée du HSM
-
-        Args:
-            encrypted_data_hex (str): Données chiffrées en hexadécimal
-
-        Returns:
-            str: Données déchiffrées ou None en cas d'erreur
-        """
+    def decrypt_data(self, encrypted_data_hex, key_label=None):
+        """Déchiffrer des données avec une clé privée spécifique"""
         try:
             print(f"🔓 Tentative de déchiffrement")
 
-            # Vérifier la connexion HSM
             if not self.session:
                 self.connect('1234')
 
-            # Rechercher les clés privées disponibles
+            # Rechercher les clés privées
             private_keys = list(self.session.get_objects({
                 pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PRIVATE_KEY
             }))
 
-            # Vérifier qu'une clé privée existe
             if not private_keys:
-                print("❌ Aucune clé privée trouvée pour le déchiffrement")
+                print("❌ Aucune clé privée trouvée")
                 return None
 
-            # Prendre la première clé privée disponible
-            private_key = private_keys[0]
+            # Si un label spécifique est fourni, utiliser cette clé
+            if key_label:
+                for key in private_keys:
+                    if getattr(key, 'label', '') == key_label:
+                        private_key = key
+                        break
+                else:
+                    print(f"❌ Clé avec label '{key_label}' non trouvée")
+                    return None
+            else:
+                # Sinon prendre la première clé
+                private_key = private_keys[0]
+
             key_label = getattr(private_key, 'label', 'Inconnu')
             print(f"✅ Clé privée trouvée: {key_label}")
 
@@ -281,9 +319,15 @@ class HSMManager:
                 mechanism=Mechanism.RSA_PKCS  # Même mécanisme que pour le chiffrement
             )
 
-            # Convertir les bytes déchiffrés en texte
-            result = decrypted_data.decode('utf-8')
-            print(f"✅ Données déchiffrées: '{result}'")
+            # Essayer de décoder en UTF-8, sinon retourner en hexadécimal
+            try:
+                result = decrypted_data.decode('utf-8')
+                print(f"✅ Données déchiffrées (UTF-8): '{result}'")
+            except UnicodeDecodeError:
+                # Si ce n'est pas du UTF-8 valide, retourner en hexadécimal
+                result = decrypted_data.hex()
+                print(f"✅ Données déchiffrées (hexadécimal): {result[:50]}...")
+
             return result
 
         except Exception as e:
@@ -291,3 +335,28 @@ class HSMManager:
             import traceback
             traceback.print_exc()
             return None
+
+
+def test_encryption_cycle(self, test_data="Test123"):
+    """Test complet chiffrement/déchiffrement avec debug"""
+    print(f"=== TEST COMPLET ===")
+    print(f"1. Données originales: '{test_data}'")
+
+    # Chiffrer
+    encrypted_hex = self.encrypt_data(test_data)
+    print(f"2. Chiffré (hex): {encrypted_hex[:50]}...")
+
+    if not encrypted_hex:
+        print("❌ Échec du chiffrement")
+        return False
+
+    # Déchiffrer
+    decrypted_result = self.decrypt_data(encrypted_hex)
+    print(f"3. Déchiffré: '{decrypted_result}'")
+    print(f"4. Type: {type(decrypted_result)}")
+
+    # Vérifier
+    success = (decrypted_result == test_data)
+    print(f"5. Résultat: {'✅ SUCCÈS' if success else '❌ ÉCHEC'}")
+    print(f"=== FIN TEST ===")
+    return success

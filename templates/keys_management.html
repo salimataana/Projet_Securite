@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Clés Cryptographiques</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .key-card { transition: transform 0.2s; }
+        .key-card:hover { transform: translateY(-2px); }
+        .usage-badge { font-size: 0.8em; }
+        .stats-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .operation-badge {
+            font-size: 0.7em;
+            padding: 0.25em 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- En-tête avec navigation -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="text-center mb-0">
+                        <i class="fas fa-key me-2"></i>Gestion des Clés Cryptographiques
+                    </h1>
+                    <a href="/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques Globales -->
+        <div class="row mb-4" id="statisticsSection">
+            <div class="col-12">
+                <h4><i class="fas fa-chart-bar me-2"></i>Statistiques Globales</h4>
+                <div class="row" id="globalStats">
+                    <!-- Les statistiques seront chargées ici -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Génération de Clé -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Générer une Nouvelle Clé</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="keySize" class="form-label">Taille de la clé (bits):</label>
+                                <select class="form-select" id="keySize">
+                                    <option value="2048">2048 bits (Recommandé)</option>
+                                    <option value="3072">3072 bits (Sécurisé)</option>
+                                    <option value="4096">4096 bits (Très sécurisé)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" onclick="generateNewKey()" id="generateButton">
+                                    <i class="fas fa-key me-2"></i>Générer la Clé
+                                </button>
+                            </div>
+                        </div>
+                        <div id="keyGenerationResult" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des Clés -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Clés Stockées dans la Base de Données
+                            <span class="badge bg-secondary ms-2" id="keysCount">0</span>
+                        </h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="loadKeys()">
+                                <i class="fas fa-sync-alt me-1"></i>Actualiser
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="testKeyOperations()">
+                                <i class="fas fa-test me-1"></i>Tester une clé
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="keysList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Chargement...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Chargement des clés...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour les détails d'opérations -->
+        <div class="modal fade" id="operationsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-history me-2"></i>Opérations de la clé:
+                            <span id="modalKeyId" class="text-primary"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="operationsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour tester une clé -->
+        <div class="modal fade" id="testKeyModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tester les opérations avec une clé</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Sélectionner une clé:</label>
+                            <select class="form-select" id="testKeySelect">
+                                <option value="">Chargement des clés...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Données à tester:</label>
+                            <textarea class="form-control" id="testData" rows="3">Message de test pour les opérations cryptographiques</textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="testSignature()">
+                                <i class="fas fa-signature me-2"></i>Tester Signature
+                            </button>
+                            <button class="btn btn-success" onclick="testEncryption()">
+                                <i class="fas fa-lock me-2"></i>Tester Chiffrement
+                            </button>
+                            <button class="btn btn-info" onclick="testHashAndSign()">
+                                <i class="fas fa-fingerprint me-2"></i>Tester Hachage + Signature
+                            </button>
+                        </div>
+                        <div id="testResults" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Charger les données au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadKeys();
+        });
+
+        function loadStatistics() {
+            fetch('/api/keys/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.statistics;
+                        document.getElementById('globalStats').innerHTML = `
+                            <div class="col-md-2 mb-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.total_keys}</h3>
+                                        <small>Clés Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.active_keys}</h3>
+                                        <small>Clés Actives</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.total_operations}</h3>
+                                        <small>Opérations</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.success_rate}</h3>
+                                        <small>Taux de Réussite</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.avg_processing_time}</h3>
+                                        <small>Temps Moyen</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des statistiques:', error);
+                });
+        }
+
+        function loadKeys() {
+            const keysList = document.getElementById('keysList');
+            keysList.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Chargement des clés...</p>
+                </div>
+            `;
+
+            fetch('/api/keys/list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayKeys(data.keys);
+                        document.getElementById('keysCount').textContent = data.keys.length;
+                        updateTestKeySelect(data.keys);
+                    } else {
+                        keysList.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Erreur lors du chargement des clés: ${data.error}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    keysList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Erreur de connexion: ${error}
+                        </div>
+                    `;
+                });
+        }
+
+        function displayKeys(keys) {
+            if (keys.length === 0) {
+                document.getElementById('keysList').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-key fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucune clé générée pour le moment</h5>
+                        <p class="text-muted">Utilisez le formulaire ci-dessus pour générer votre première clé.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="row">';
+            keys.forEach(key => {
+                const created = new Date(key.created_at).toLocaleString('fr-FR');
+                const lastUsed = key.last_used ? new Date(key.last_used).toLocaleString('fr-FR') : 'Jamais';
+                const statusClass = key.status === 'active' ? 'success' : 'secondary';
+                const statusText = key.status === 'active' ? 'active' : 'inactive';
+
+                html += `
+                    <div class="col-lg-6 col-xl-4 mb-3">
+                        <div class="card key-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title text-truncate">
+                                        <i class="fas fa-key text-primary me-2"></i>${key.key_id}
+                                    </h6>
+                                    <span class="badge bg-${statusClass}">${statusText}</span>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <small class="text-muted">Type:</small>
+                                        <br><strong>${key.key_type}</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Taille:</small>
+                                        <br><strong>${key.key_size} bits</strong>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <small class="text-muted">Clé publique:</small>
+                                        <br><code class="small">${key.public_key_preview || 'Non disponible'}</code>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <small class="text-muted">Créée le:</small>
+                                        <br><small>${created}</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Dernière utilisation:</small>
+                                        <br><small>${lastUsed}</small>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="usage-badge badge bg-info">
+                                        <i class="fas fa-chart-line me-1"></i>${key.usage_count} utilisations
+                                    </span>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-1"
+                                                onclick="showOperations('${key.key_id}')"
+                                                title="Voir l'historique">
+                                            <i class="fas fa-history"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success me-1"
+                                                onclick="useKeyForTest('${key.key_id}')"
+                                                title="Tester cette clé">
+                                            <i class="fas fa-test"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-${key.status === 'active' ? 'warning' : 'success'}"
+                                                onclick="toggleKeyStatus('${key.key_id}')"
+                                                title="${key.status === 'active' ? 'Désactiver' : 'Activer'} cette clé">
+                                            <i class="fas ${key.status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('keysList').innerHTML = html;
+        }
+
+        function toggleKeyStatus(keyId) {
+            if (!confirm('Voulez-vous vraiment changer le statut de cette clé ?')) {
+                return;
+            }
+
+            fetch(`/api/keys/${keyId}/toggle-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadKeys();
+                    loadStatistics();
+                    showTemporaryMessage(`✅ Clé ${data.new_status === 'active' ? 'activée' : 'désactivée'} avec succès`, 'success');
+                } else {
+                    showTemporaryMessage(`❌ Erreur: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showTemporaryMessage(`💥 Erreur réseau: ${error}`, 'error');
+            });
+        }
+
+        function showTemporaryMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+            messageDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            const container = document.querySelector('.container-fluid');
+            container.insertBefore(messageDiv, container.firstChild);
+
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 3000);
+        }
+
+        function generateNewKey() {
+            const keySize = document.getElementById('keySize').value;
+            const resultDiv = document.getElementById('keyGenerationResult');
+            const generateButton = document.getElementById('generateButton');
+
+            generateButton.disabled = true;
+            generateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Génération en cours...';
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <div>
+                            <strong>Génération de la clé RSA ${keySize} bits en cours...</strong>
+                            <div class="small">Cette opération peut prendre quelques secondes</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            fetch('/api/keys/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ key_size: parseInt(keySize) })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>Clé générée avec succès!</h6>
+                            <div class="mt-2">
+                                <p class="mb-1"><strong>ID de la clé:</strong> <code>${data.key_id}</code></p>
+                                <p class="mb-1"><strong>Taille:</strong> ${data.key_size} bits</p>
+                                <p class="mb-1"><strong>Temps de génération:</strong> ${data.processing_time}</p>
+                                <p class="mb-0"><strong>Stockage:</strong> ${data.stored_in_db ? '✅ Base de données' : '❌ Non stockée'}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    setTimeout(() => {
+                        loadStatistics();
+                        loadKeys();
+                    }, 500);
+
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Erreur lors de la génération:</strong> ${data.error}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Erreur de connexion:</strong> ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                generateButton.disabled = false;
+                generateButton.innerHTML = '<i class="fas fa-key me-2"></i>Générer la Clé';
+            });
+        }
+
+        function showOperations(keyId) {
+            document.getElementById('modalKeyId').textContent = keyId;
+            const operationsList = document.getElementById('operationsList');
+
+            operationsList.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Chargement des opérations...</p>
+                </div>
+            `;
+
+            fetch(`/api/keys/${keyId}/operations`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.operations.length > 0) {
+                        let html = '<div class="table-responsive"><table class="table table-sm table-hover">';
+                        html += `
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Hash des données</th>
+                                    <th>Signature</th>
+                                    <th>Temps</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+
+                        data.operations.forEach(op => {
+                            const successBadge = op.success ?
+                                '<span class="badge bg-success operation-badge">Succès</span>' :
+                                '<span class="badge bg-danger operation-badge">Échec</span>';
+
+                            const operationTypeBadge = getOperationTypeBadge(op.operation_type);
+
+                            html += `
+                                <tr>
+                                    <td>${operationTypeBadge}</td>
+                                    <td><small class="font-monospace">${op.data_hash || 'N/A'}</small></td>
+                                    <td><small class="font-monospace">${op.signature_preview || 'N/A'}</small></td>
+                                    <td>${op.processing_time}</td>
+                                    <td><small>${new Date(op.timestamp).toLocaleString('fr-FR')}</small></td>
+                                    <td>${successBadge}</td>
+                                </tr>
+                            `;
+                        });
+
+                        html += '</tbody></table></div>';
+                        operationsList.innerHTML = html;
+                    } else {
+                        operationsList.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-history fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">Aucune opération enregistrée pour cette clé</p>
+                            </div>
+                        `;
+                    }
+
+                    new bootstrap.Modal(document.getElementById('operationsModal')).show();
+                })
+                .catch(error => {
+                    operationsList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Erreur lors du chargement des opérations: ${error}
+                        </div>
+                    `;
+                });
+        }
+
+        function getOperationTypeBadge(type) {
+            const badges = {
+                'key_generation': { class: 'bg-primary', text: 'Génération' },
+                'signature': { class: 'bg-success', text: 'Signature' },
+                'encryption': { class: 'bg-warning', text: 'Chiffrement' },
+                'decryption': { class: 'bg-info', text: 'Déchiffrement' },
+                'hash_and_sign': { class: 'bg-dark', text: 'Hachage+Sign' }
+            };
+
+            const badge = badges[type] || { class: 'bg-secondary', text: type };
+            return `<span class="badge ${badge.class} operation-badge">${badge.text}</span>`;
+        }
+
+        function testKeyOperations() {
+            fetch('/api/keys/list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.keys.length > 0) {
+                        updateTestKeySelect(data.keys);
+                        new bootstrap.Modal(document.getElementById('testKeyModal')).show();
+                    } else {
+                        alert('Aucune clé disponible pour les tests. Veuillez d\'abord générer une clé.');
+                    }
+                });
+        }
+
+        function updateTestKeySelect(keys) {
+            const select = document.getElementById('testKeySelect');
+            select.innerHTML = '<option value="">Sélectionner une clé...</option>';
+
+            keys.forEach(key => {
+                if (key.status === 'active') {
+                    const option = document.createElement('option');
+                    option.value = key.key_id;
+                    option.textContent = `${key.key_id} (${key.key_size} bits) - ${key.usage_count} utilisations`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        function useKeyForTest(keyId) {
+            const select = document.getElementById('testKeySelect');
+            const option = Array.from(select.options).find(opt => opt.value === keyId);
+            if (option) {
+                select.value = keyId;
+                new bootstrap.Modal(document.getElementById('testKeyModal')).show();
+            }
+        }
+
+        function testSignature() {
+            const keyId = document.getElementById('testKeySelect').value;
+            const testData = document.getElementById('testData').value;
+
+            if (!keyId) {
+                alert('Veuillez sélectionner une clé');
+                return;
+            }
+
+            performTestOperation('/sign', { data: testData, key_id: keyId }, 'Signature');
+        }
+
+        function testEncryption() {
+            const keyId = document.getElementById('testKeySelect').value;
+            const testData = document.getElementById('testData').value;
+
+            if (!keyId) {
+                alert('Veuillez sélectionner une clé');
+                return;
+            }
+
+            performTestOperation('/encrypt', { data: testData, key_id: keyId }, 'Chiffrement');
+        }
+
+        function testHashAndSign() {
+            const keyId = document.getElementById('testKeySelect').value;
+            const testData = document.getElementById('testData').value;
+
+            if (!keyId) {
+                alert('Veuillez sélectionner une clé');
+                return;
+            }
+
+            performTestOperation('/hash-and-sign', { data: testData, key_id: keyId }, 'Hachage + Signature');
+        }
+
+        function performTestOperation(url, data, operationName) {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2"></div>
+                        <span>${operationName} en cours...</span>
+                    </div>
+                </div>
+            `;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>${operationName} réussie!</h6>
+                            <div class="mt-2">
+                                ${result.signature ? `<p><strong>Signature:</strong> <code class="small">${result.signature.substring(0, 50)}...</code></p>` : ''}
+                                ${result.hash ? `<p><strong>Hash:</strong> <code class="small">${result.hash}</code></p>` : ''}
+                                ${result.encrypted_data ? `<p><strong>Données chiffrées:</strong> <code class="small">${result.encrypted_data.substring(0, 50)}...</code></p>` : ''}
+                                ${result.performance ? `<p><strong>Temps:</strong> ${result.performance.total_time || result.processing_time}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+
+                    setTimeout(() => {
+                        loadStatistics();
+                        loadKeys();
+                    }, 1000);
+
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Erreur lors de ${operationName}:</strong> ${result.error}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Erreur de connexion:</strong> ${error}
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

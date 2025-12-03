@@ -330,7 +330,7 @@
                     Génère une paire de clés RSA 2048 bits sécurisée
                 </p>
                 <button class="btn" onclick="generateKeys()">
-                    ⚡ Générer les Clés RSA
+                     Générer les Clés RSA
                 </button>
             </div>
 
@@ -521,7 +521,7 @@
         async function hashAndSign() {
             const data = document.getElementById('hashSignInput').value;
             const algorithm = document.getElementById('hashAlgorithm').value;
-            
+
             if (!data) {
                 showResult('❌ Veuillez entrer des données', 'error');
                 return;
@@ -546,7 +546,7 @@
             const signature = prompt('Signature à vérifier:');
             const expectedHash = prompt('Hash attendu:');
             const algorithm = document.getElementById('hashAlgorithm').value;
-            
+
             if (!data || !signature || !expectedHash) {
                 showResult('❌ Données manquantes', 'error');
                 return;
@@ -569,7 +569,7 @@
         async function computeHash() {
             const data = document.getElementById('hashInput').value;
             const algorithm = document.getElementById('hashAlgorithm').value;
-            
+
             if (!data) {
                 showResult('❌ Veuillez entrer des données', 'error');
                 return;
@@ -602,7 +602,7 @@
 
         async function benchmarkHashAlgorithms() {
             const data = document.getElementById('hashInput').value || "Test data for hashing benchmark";
-            
+
             showResult("⏳ Benchmark des algorithmes de hachage...", 'info');
             try {
                 const response = await fetch('/benchmark/hash-algorithms', {
@@ -702,7 +702,7 @@ function displayPerformanceResults(result) {
             if (result.success) {
                 let html = `🎓 <strong>Concepts Cryptographiques</strong><br><br>`;
                 html += `<div class="concept-grid">`;
-                
+
                 for (const [key, concept] of Object.entries(result.concepts)) {
                     html += `<div class="concept-item">`;
                     html += `<h4>${concept.name}</h4>`;
@@ -711,7 +711,7 @@ function displayPerformanceResults(result) {
                     html += `✓ Démonstration: ${concept.success !== undefined ? (concept.success ? 'SUCCÈS' : 'ÉCHEC') : 'N/A'}`;
                     html += `</div></div>`;
                 }
-                
+
                 html += `</div>`;
                 showResult(html, 'info');
             } else {
@@ -734,7 +734,7 @@ function displayPerformanceResults(result) {
         function displayVerificationResult(result) {
             if (result.success) {
                 const isValid = result.valid;
-                let html = isValid ? 
+                let html = isValid ?
                     `🎉 <strong>VÉRIFICATION RÉUSSIE</strong><br>` :
                     `❌ <strong>VÉRIFICATION ÉCHOUÉE</strong><br>`;
                 html += `<div>${result.message}</div>`;
@@ -747,7 +747,7 @@ function displayPerformanceResults(result) {
         function displayHashBenchmarkResults(result) {
             if (result.success) {
                 let html = `🔍 <strong>Benchmark Algorithmes de Hachage</strong><br><br>`;
-                
+
                 for (const [algo, data] of Object.entries(result.results)) {
                     if (!data.error) {
                         html += `<div class="concept-item">`;
@@ -758,7 +758,7 @@ function displayPerformanceResults(result) {
                         html += `</div>`;
                     }
                 }
-                
+
                 showResult(html, 'info');
             } else {
                 showResult(`❌ Erreur: ${result.error}`, 'error');
@@ -768,7 +768,7 @@ function displayPerformanceResults(result) {
         function displayCollisionDemo(result) {
             if (result.success) {
                 let html = `🛡️ <strong>Résistance aux Collisions</strong><br><br>`;
-                
+
                 result.demonstrations.forEach(demo => {
                     html += `<div class="concept-item">`;
                     html += `<h4>${demo.concept}</h4>`;
@@ -781,7 +781,7 @@ function displayPerformanceResults(result) {
                     }
                     html += `</div>`;
                 });
-                
+
                 showResult(html, 'info');
             } else {
                 showResult(`❌ Erreur: ${result.error}`, 'error');
@@ -959,46 +959,6 @@ async function simpleSignData() {
     }
 }
 
-async function simpleEncryptData() {
-    const data = document.getElementById('simpleEncryptInput').value;
-    const keyId = document.getElementById('keySelector').value;
-
-    if (!data) {
-        showResult('❌ Veuillez entrer des données à chiffrer', "error");
-        return;
-    }
-
-    showResult("⏳ Chiffrement RSA en cours...", "warning");
-    try {
-        const response = await fetch('/encrypt', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({data, key_id: keyId || null})
-        });
-        const result = await response.json();
-        if (result.success) {
-            let html = `✅ <strong>Données chiffrées avec succès!</strong><br><br>`;
-            if (keyId) html += `<strong>Clé utilisée:</strong> ${keyId}<br>`;
-            html += `<strong>Message chiffré:</strong>
-                    <div class="code-block">${result.encrypted_data}</div>`;
-
-            // Afficher le temps seulement s'il est disponible
-            if (result.processing_time) {
-                html += `<div class="performance">⏱️ ${result.processing_time}</div>`;
-            }
-
-            showResult(html, "success");
-
-            // Recharger la liste pour mettre à jour les compteurs
-            setTimeout(loadKeys, 1000);
-        } else {
-            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
-        }
-    } catch (error) {
-        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
-    }
-}
-
 async function hashAndSign() {
     const data = document.getElementById('hashSignInput').value;
     const algorithm = document.getElementById('hashAlgorithm').value;
@@ -1131,64 +1091,77 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        async function simpleEncryptData() {
-            const data = document.getElementById('simpleEncryptInput').value;
-            if (!data) {
-                showResult('❌ Veuillez entrer des données à chiffrer', "error");
-                return;
+     // Chiffrement avec clé sélectionnée
+    async function simpleEncryptData() {
+    const data = document.getElementById('simpleEncryptInput').value;
+    const keyId = document.getElementById('keySelector').value; // clé sélectionnée
+
+    if (!data) {
+        showResult('❌ Veuillez entrer des données à chiffrer', "error");
+        return;
+    }
+
+    showResult("⏳ Chiffrement RSA en cours...", "warning");
+    try {
+        const response = await fetch('/encrypt', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({data, key_id: keyId || null}) // utilisation de la clé
+        });
+        const result = await response.json();
+        if (result.success) {
+            let html = `✅ <strong>Données chiffrées avec succès!</strong><br><br>`;
+            if (keyId) html += `<strong>Clé utilisée:</strong> ${keyId}<br>`;
+            html += `<strong>Message chiffré:</strong>
+                     <div class="code-block">${result.encrypted_data}</div>`;
+
+            if (result.processing_time) {
+                html += `<div class="performance">⏱️ ${result.processing_time}</div>`;
             }
 
-            showResult("⏳ Chiffrement RSA en cours...", "warning");
-            try {
-                const response = await fetch('/encrypt', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({data})
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showResult(`✅ <strong>Données chiffrées avec succès!</strong><br><br>
-                            <strong>Message chiffré:</strong>
-                            <div class="code-block">${result.encrypted_data}</div>
-                            <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
-                } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
-                }
-            } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
-            }
+            showResult(html, "success");
+
+            // Recharger la liste de clés pour mettre à jour les compteurs
+            setTimeout(loadKeys, 1000);
+        } else {
+            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
         }
-
-        async function simpleDecryptData() {
-    const encrypted_data = prompt('Collez les données chiffrées:');
-    if (encrypted_data) {
-        showResult("⏳ Déchiffrement sécurisé en cours...", "warning");
-        try {
-            const response = await fetch('/decrypt', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({encrypted_data})
-            });
-            const result = await response.json();
-            if (result.success) {
-                let html = `✅ <strong>Données déchiffrées avec succès!</strong><br><br>`;
-                html += `<strong>Message original:</strong>`;
-                html += `<div class="code-block">${result.decrypted_data}</div>`;
-
-                // Afficher le temps de traitement seulement s'il est disponible
-                if (result.processing_time) {
-                    html += `<div class="performance">⏱️ ${result.processing_time}</div>`;
-                }
-
-                showResult(html, "success");
-            } else {
-                showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
-            }
-        } catch (error) {
-            showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
-        }
+    } catch (error) {
+        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
     }
 }
+
+// Déchiffrement
+    async function simpleDecryptData() {
+    const encrypted_data = prompt('Collez les données chiffrées:');
+    if (!encrypted_data) return;
+
+    showResult("⏳ Déchiffrement sécurisé en cours...", "warning");
+    try {
+        const response = await fetch('/decrypt', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({encrypted_data})
+        });
+        const result = await response.json();
+        if (result.success) {
+            let html = `✅ <strong>Données déchiffrées avec succès!</strong><br><br>`;
+            html += `<strong>Message original:</strong>`;
+            html += `<div class="code-block">${result.decrypted_data}</div>`;
+
+            if (result.processing_time) {
+                html += `<div class="performance">⏱️ ${result.processing_time}</div>`;
+            }
+
+            showResult(html, "success");
+        } else {
+            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+        }
+    } catch (error) {
+        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+    }
+}
+
 
 
         // Stockage du dernier résultat
@@ -1243,7 +1216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 notification.textContent = '✅ Copié !';
                 document.body.appendChild(notification);
-                
+
                 setTimeout(() => {
                     document.body.removeChild(notification);
                 }, 2000);
@@ -1261,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     hash: result.hash,
                     algorithm: result.hash_algorithm
                 };
-                
+
                 let html = `✅ <strong>Hachage + Signature réussis!</strong><br><br>`;
                 html += `<strong>Hash (${result.hash_algorithm}):</strong><br>`;
                 html += `<div class="code-block" onclick="copyToClipboard('${result.hash}')" style="cursor: pointer;" title="Cliquer pour copier">${result.hash}</div><br>`;
@@ -1269,7 +1242,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += `<div class="code-block" onclick="copyToClipboard('${result.signature}')" style="cursor: pointer;" title="Cliquer pour copier">${result.signature}</div><br>`;
                 html += `<strong>Performance:</strong><br>`;
                 html += `<div class="code-block">${JSON.stringify(result.performance, null, 2)}</div>`;
-                
+
                 // NOTE: Le bouton "Vérifier Maintenant" a été supprimé ici
                 showResult(html, 'success');
             } else {
@@ -1283,12 +1256,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const signature = document.getElementById('verificationSignature').value;
             const expectedHash = document.getElementById('verificationHash').value;
             const algorithm = document.getElementById('hashAlgorithm').value;
-            
+
             if (!data) {
                 showResult('❌ Veuillez entrer des données dans la zone principale', 'error');
                 return;
             }
-            
+
             if (!signature || !expectedHash) {
                 showResult('❌ Veuillez remplir tous les champs de vérification', 'error');
                 return;
@@ -1300,15 +1273,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        data, 
-                        signature, 
-                        expected_hash: expectedHash, 
+                        data,
+                        signature,
+                        expected_hash: expectedHash,
                         algorithm
                     })
                 });
                 const result = await response.json();
                 displayVerificationResult(result);
-                
+
                 // Cacher la section de vérification après un succès
                 if (result.success && result.valid) {
                     setTimeout(() => {

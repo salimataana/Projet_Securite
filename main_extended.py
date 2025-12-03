@@ -1,6 +1,5 @@
  # -*- coding: utf-8 -*-
 import sqlite3
-
 from flask import Flask, render_template, request, jsonify
 from extended_hsm_manager import ExtendedHSMManager
 from performance_analyzer import PerformanceAnalyzer
@@ -174,20 +173,21 @@ def api_verify_signature():
 
 @app.route('/api/encrypt', methods=['POST'])
 def api_encrypt_data():
-    """Chiffrement simple"""
+    """Chiffrement simple avec retour du key_label utilisé"""
     try:
         data = request.json.get('data')
-        key_id = request.json.get('key_id')
+        key_label = request.json.get('key_id')  # Ici key_id correspond au label
 
         if not data:
             return jsonify({'success': False, 'error': 'Aucune donnée fournie'})
 
         start_time = time.time()  # Début chronomètre
 
-        if key_id:
-            encrypted_data = hsm_manager.encrypt_data_with_tracking(data, key_id)
+        # Chiffrement en utilisant la clé publique correspondant au label
+        if key_label:
+            encrypted_data, used_label = hsm_manager.encrypt_data(data, key_label)
         else:
-            encrypted_data = hsm_manager.encrypt_data(data)
+            encrypted_data, used_label = hsm_manager.encrypt_data(data)  # Utilise la première clé dispo
 
         end_time = time.time()  # Fin chronomètre
 
@@ -195,7 +195,7 @@ def api_encrypt_data():
             return jsonify({
                 'success': True,
                 'encrypted_data': encrypted_data,
-                'key_id': key_id,
+                'key_id': used_label,  # Retourne le label utilisé pour le déchiffrement
                 'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
             })
         else:
@@ -207,34 +207,26 @@ def api_encrypt_data():
 
 @app.route('/api/decrypt', methods=['POST'])
 def api_decrypt_data():
-    """Déchiffrement simple"""
+    """Déchiffrement simple avec clé privée correspondant au key_label"""
     try:
         encrypted_data = request.json.get('encrypted_data')
-        key_id = request.json.get('key_id')
+        key_label = request.json.get('key_id')  # Obligatoire pour retrouver la clé privée
 
-        if not encrypted_data:
-            return jsonify({'success': False, 'error': 'Aucune donnée chiffrée fournie'})
+        if not encrypted_data or not key_label:
+            return jsonify({'success': False, 'error': 'Données chiffrées ou key_label manquant'})
 
         start_time = time.time()  # Début chronomètre
 
-        if key_id:
-            decrypted_data = hsm_manager.decrypt_data_with_tracking(encrypted_data, key_id)
-        else:
-            decrypted_data = hsm_manager.decrypt_data(encrypted_data)
+        # Déchiffrement avec la clé privée correspondant au key_label
+        decrypted_data = hsm_manager.decrypt_data(encrypted_data, key_label)
 
         end_time = time.time()  # Fin chronomètre
 
         if decrypted_data:
-            # Tenter de décoder en UTF-8 pour retourner le texte clair
-            try:
-                decrypted_text = bytes.fromhex(decrypted_data).decode('utf-8')
-            except:
-                decrypted_text = decrypted_data  # fallback si ce n’est pas du texte
-
             return jsonify({
                 'success': True,
-                'decrypted_data': decrypted_text,
-                'key_id': key_id,
+                'decrypted_data': decrypted_data,
+                'key_id': key_label,
                 'processing_time': f"{(end_time - start_time) * 1000:.2f} ms"
             })
         else:

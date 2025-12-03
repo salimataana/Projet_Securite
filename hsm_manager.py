@@ -3,6 +3,9 @@ from pkcs11 import KeyType, Mechanism
 import os
 import time
 
+# Stocke la dernière clé utilisée pour le chiffrement
+LAST_ENCRYPTION_KEY_ID = None
+
 
 class HSMManager:
     """
@@ -221,120 +224,60 @@ class HSMManager:
 
     def encrypt_data(self, data, key_label=None):
         """Chiffrer des données avec une clé publique spécifique"""
-        try:
-            print(f"🔒 Tentative de chiffrement: '{data}'")
+        if not self.session:
+            self.connect('1234')
 
-            if not self.session:
-                self.connect('1234')
+        # Rechercher les clés publiques
+        public_keys = list(self.session.get_objects({
+            pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY
+        }))
 
-            # Rechercher les clés publiques
-            public_keys = list(self.session.get_objects({
-                pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY
-            }))
-
-            if not public_keys:
-                print("❌ Aucune clé publique trouvée")
-                return None
-
-            # Si un label spécifique est fourni, utiliser cette clé
-            if key_label:
-                for key in public_keys:
-                    if getattr(key, 'label', '') == key_label:
-                        public_key = key
-                        break
-                else:
-                    print(f"❌ Clé avec label '{key_label}' non trouvée")
-                    return None
+        if key_label:
+            # Prendre la clé publique correspondant au label
+            for key in public_keys:
+                if getattr(key, 'label', '') == key_label:
+                    public_key = key
+                    break
             else:
-                # Sinon prendre la première clé
-                public_key = public_keys[0]
-
+                print(f"❌ Clé publique avec label '{key_label}' non trouvée")
+                return None
+        else:
+            # Si pas de label fourni, prendre la première (moins sûr si plusieurs clés)
+            public_key = public_keys[0]
             key_label = getattr(public_key, 'label', 'Inconnu')
-            print(f"✅ Clé publique trouvée: {key_label}")
 
-            # Convertir les données en bytes
-            data_bytes = data.encode('utf-8')
+        # Chiffrement
+        encrypted_data = public_key.encrypt(
+            data.encode('utf-8'),
+            mechanism=Mechanism.RSA_PKCS
+        )
+        return encrypted_data.hex(), key_label  # Retourner aussi le label utilisé
 
-            # Vérifier la taille des données (RSA 2048 bits = 245 bytes max)
-            max_size = 245  # Pour RSA 2048 avec padding PKCS
-            if len(data_bytes) > max_size:
-                print(f"⚠️ Données trop longues ({len(data_bytes)} > {max_size} bytes), tronquage automatique")
-                data_bytes = data_bytes[:max_size]
+    def decrypt_data(self, encrypted_data_hex, key_label):
+        """Déchiffrer des données avec la clé privée correspondante"""
+        if not self.session:
+            self.connect('1234')
 
-            # Chiffrer les données avec RSA
-            encrypted_data = public_key.encrypt(
-                data_bytes,  # Données à chiffrer
-                mechanism=Mechanism.RSA_PKCS  # Mécanisme de chiffrement
-            )
+        # Rechercher les clés privées
+        private_keys = list(self.session.get_objects({
+            pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PRIVATE_KEY
+        }))
 
-            print("✅ Données chiffrées avec succès")
-            # Retourner les données chiffrées en hexadécimal
-            return encrypted_data.hex()
-
-        except Exception as e:
-            print(f"❌ Erreur chiffrement: {e}")
-            import traceback
-            traceback.print_exc()
+        # Chercher la clé privée correspondant au label
+        for key in private_keys:
+            if getattr(key, 'label', '') == key_label:
+                private_key = key
+                break
+        else:
+            print(f"❌ Clé privée avec label '{key_label}' non trouvée")
             return None
 
-    def decrypt_data(self, encrypted_data_hex, key_label=None):
-        """Déchiffrer des données avec une clé privée spécifique"""
-        try:
-            print(f"🔓 Tentative de déchiffrement")
-
-            if not self.session:
-                self.connect('1234')
-
-            # Rechercher les clés privées
-            private_keys = list(self.session.get_objects({
-                pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PRIVATE_KEY
-            }))
-
-            if not private_keys:
-                print("❌ Aucune clé privée trouvée")
-                return None
-
-            # Si un label spécifique est fourni, utiliser cette clé
-            if key_label:
-                for key in private_keys:
-                    if getattr(key, 'label', '') == key_label:
-                        private_key = key
-                        break
-                else:
-                    print(f"❌ Clé avec label '{key_label}' non trouvée")
-                    return None
-            else:
-                # Sinon prendre la première clé
-                private_key = private_keys[0]
-
-            key_label = getattr(private_key, 'label', 'Inconnu')
-            print(f"✅ Clé privée trouvée: {key_label}")
-
-            # Convertir les données chiffrées d'hexadécimal vers bytes
-            encrypted_data = bytes.fromhex(encrypted_data_hex)
-
-            # Déchiffrer les données avec la clé privée
-            decrypted_data = private_key.decrypt(
-                encrypted_data,  # Données chiffrées
-                mechanism=Mechanism.RSA_PKCS  # Même mécanisme que pour le chiffrement
-            )
-
-            # Essayer de décoder en UTF-8, sinon retourner en hexadécimal
-            try:
-                result = decrypted_data.decode('utf-8')
-                print(f"✅ Données déchiffrées (UTF-8): '{result}'")
-            except UnicodeDecodeError:
-                # Si ce n'est pas du UTF-8 valide, retourner en hexadécimal
-                result = decrypted_data.hex()
-                print(f"✅ Données déchiffrées (hexadécimal): {result[:50]}...")
-
-            return result
-
-        except Exception as e:
-            print(f"❌ Erreur déchiffrement: {e}")
-            import traceback
-            traceback.print_exc()
-            return None
+        # Déchiffrement
+        decrypted_data = private_key.decrypt(
+            bytes.fromhex(encrypted_data_hex),
+            mechanism=Mechanism.RSA_PKCS
+        )
+        return decrypted_data.decode('utf-8')  # Retourner le texte clair
 
 
 def test_encryption_cycle(self, test_data="Test123"):

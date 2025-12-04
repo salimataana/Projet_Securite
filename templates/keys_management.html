@@ -653,6 +653,17 @@
                                 ${result.signature ? `<p><strong>Signature:</strong> <code class="small">${result.signature.substring(0, 50)}...</code></p>` : ''}
                                 ${result.hash ? `<p><strong>Hash:</strong> <code class="small">${result.hash}</code></p>` : ''}
                                 ${result.encrypted_data ? `<p><strong>Données chiffrées:</strong> <code class="small">${result.encrypted_data.substring(0, 50)}...</code></p>` : ''}
+                                
+                                <!--
+                                ${result.encrypted_data ? 
+                                    `<p><strong>Données chiffrées:</strong> <code class="small">${
+                                        typeof result.encrypted_data === 'string' ? 
+                                        result.encrypted_data.substring(0, 50) + '...' : 
+                                        'Format invalide: ' + typeof result.encrypted_data
+                                    }</code></p>` 
+                                : ''}
+                                -->
+                                
                                 ${result.performance ? `<p><strong>Temps:</strong> ${result.performance.total_time || result.processing_time}</p>` : ''}
                             </div>
                         </div>

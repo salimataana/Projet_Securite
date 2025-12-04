@@ -196,9 +196,9 @@ class ExtendedHSMManager(HSMManager):
             if key['key_id'] == key_id:
                 return key['private_key']
         raise ValueError(f"Clé privée {key_id} introuvable")
-
+    """
     def encrypt_data_with_tracking(self, data, key_id=None):
-        """Chiffre avec la clé publique correcte"""
+        #Chiffre avec la clé publique correcte
         try:
             if not key_id:
                 key_id = self.list_keys()[0]['key_id']
@@ -222,6 +222,102 @@ class ExtendedHSMManager(HSMManager):
         except Exception as e:
             print(f"⚠️ Erreur chiffrement: {e}")
             return None, key_id
+    """
+    
+    def encrypt_data_with_tracking(self, data, key_id):
+        """Chiffre les données avec suivi dans la base - VERSION SIMPLIFIÉE"""
+        try:
+            print(f"\n=== DEBUG DÉBUT ===")
+            print(f"Clé demandée: {key_id}")
+            
+            # Afficher toutes les clés HSM
+            keys = self.list_keys()
+            print(f"Clés disponibles dans HSM: {len(keys)}")
+            for i, key in enumerate(keys):
+                print(f"  {i+1}. {key.get('key_id', 'N/A')}")
+            
+            # Utiliser la première clé disponible
+            if keys:
+                first_key = keys[0]
+                real_key_id = first_key.get('key_id')
+                public_key = first_key.get('public_key')
+                
+                print(f"Utilisation de la clé: {real_key_id}")
+                
+                # Chiffrer
+                data_bytes = data.encode('utf-8') if isinstance(data, str) else data
+                
+                try:
+                    encrypted = public_key.encrypt(data_bytes)
+                    
+                    if encrypted:
+                        # Enregistrer dans la base avec l'ID original
+                        if self.database:
+                            self.database.record_operation(
+                                key_id=key_id,  # Garder l'ID original
+                                operation_type='encryption'
+                            )
+                        
+                        return encrypted.hex()
+                except Exception as e:
+                    print(f"Erreur chiffrement: {e}")
+            
+            print(f"=== DEBUG FIN ===")
+            return None
+            
+        except Exception as e:
+            print(f"Erreur: {e}")
+            return None
+    
+    def debug_hsm_keys(self):
+        """Affiche toutes les clés dans HSM avec leurs labels"""
+        print("=" * 60)
+        print("DEBUG HSM KEYS")
+        print("=" * 60)
+        
+        keys = self.list_keys()
+        print(f"Nombre de clés dans HSM: {len(keys)}")
+        
+        for i, key in enumerate(keys):
+            key_id = key.get('key_id', 'N/A')
+            public_key = key.get('public_key')
+            private_key = key.get('private_key')
+            
+            print(f"\nClé #{i+1}:")
+            print(f"  - ID dans list_keys: {key_id}")
+            print(f"  - Type public_key: {type(public_key)}")
+            print(f"  - Type private_key: {type(private_key)}")
+            
+            # Essayer d'obtenir plus d'infos sur la clé publique
+            if public_key:
+                try:
+                    # Lire les attributs de la clé
+                    from pkcs11 import Attribute
+                    attrs = public_key.getAttributes([Attribute.LABEL, Attribute.ID, Attribute.CLASS])
+                    print(f"  - Label réel: {attrs.get(Attribute.LABEL, 'N/A')}")
+                    print(f"  - ID réel: {attrs.get(Attribute.ID, 'N/A')}")
+                    print(f"  - Classe: {attrs.get(Attribute.CLASS, 'N/A')}")
+                except Exception as e:
+                    print(f"  - Erreur lecture attributs: {e}")
+            
+            # Vérifier les attributs de la clé privée aussi
+            if private_key:
+                try:
+                    from pkcs11 import Attribute
+                    attrs = private_key.getAttributes([Attribute.LABEL])
+                    print(f"  - Label privé: {attrs.get(Attribute.LABEL, 'N/A')}")
+                except:
+                    pass
+        
+        print("=" * 60)
+        
+        return keys
+
+
+
+
+
+
 
     def decrypt_data_with_tracking(self, encrypted_data, key_id=None):
         """Déchiffre avec la clé privée correspondante"""

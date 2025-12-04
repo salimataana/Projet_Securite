@@ -250,3 +250,35 @@ class KeyDatabase:
             }
         finally:
             conn.close()
+
+    def get_key(self, key_id):
+        """Récupère une clé spécifique par son ID"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute('''
+                SELECT * FROM keys WHERE key_id = ?
+            ''', (key_id,))
+            
+            row = cursor.fetchone()
+            
+            if row:
+                # Adaptez les index selon votre schéma de table
+                return {
+                    'id': row[0],
+                    'key_id': row[1],
+                    'key_type': row[2],
+                    'key_size': row[3],
+                    'public_key': row[4],
+                    'created_at': row[5],
+                    'last_used': row[6],
+                    'usage_count': row[7],
+                    'status': row[8]
+                }
+            return None
+        except Exception as e:
+            print(f"Erreur get_key: {e}")
+            return None
+        finally:
+            conn.close()

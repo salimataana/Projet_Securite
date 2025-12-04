@@ -90,6 +90,22 @@ def api_keys_statistics():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+    
+
+
+  
+@app.route('/debug-hsm-keys', methods=['GET'])
+def debug_hsm_keys_route():
+    """Route pour debug les clés HSM"""
+    try:
+        keys = hsm_manager.debug_hsm_keys()
+        return jsonify({
+            'success': True,
+            'hsm_keys': [key.get('key_id', 'N/A') for key in keys],
+            'count': len(keys)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 
 # ==================== API CRYPTOGRAPHIE DE BASE ====================

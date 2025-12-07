@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse & Comparaison - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Analyse et comparaison des opérations cryptographiques</p>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
+            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
+            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
+            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
+            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
+            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+        </div>
+    </div>
+
+    <!-- Analyse de performances -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Analyse des Performances</h3>
+        </div>
+        <p class="section-description">
+            Benchmark cryptographique et analyse d'impact
+        </p>
+
+        <!-- Résumé des métriques -->
+        <div style="margin-top: 20px;">
+            <h4>Résumé</h4>
+            <ul>
+                <li>Temps moyen encrypt :
+                    <strong>
+                        {% if avg_encrypt is defined %}
+                            {{ (avg_encrypt * 1000) | round(3) }} ms
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </strong>
+                </li>
+                <li>Temps moyen decrypt :
+                    <strong>
+                        {% if avg_decrypt is defined %}
+                            {{ (avg_decrypt * 1000) | round(3) }} ms
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </strong>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Graphique Encrypt vs Decrypt -->
+        <div style="margin-top: 20px;">
+            <h4>Temps moyen (Encrypt vs Decrypt)</h4>
+            <canvas id="avgEncryptDecryptChart"></canvas>
+        </div>
+
+        <!-- Graphique par algorithme (Encrypt) -->
+        <div style="margin-top: 20px;">
+            <h4>Temps moyen par algorithme (Encrypt)</h4>
+            <canvas id="algoAvgChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Section Hashage -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3>Performances des fonctions de hashage</h3>
+        </div>
+
+        <p class="section-description">
+            Durées moyennes des opérations de hashage par algorithme, mesurées sur le HSM.
+        </p>
+
+        <!-- Durée moyenne globale -->
+        <p>
+            <strong>Durée moyenne (tous algorithmes confondus) :</strong>
+            {% if avg_hash is defined %}
+                {{ avg_hash | round(3) }} ms
+            {% else %}
+                N/A
+            {% endif %}
+        </p>
+
+        <!-- Histogramme des durées moyennes par algorithme de hash -->
+        <div style="margin-top: 20px;">
+            <h4>Durée moyenne par algorithme (Hash)</h4>
+            <canvas id="hashAlgoChart"></canvas>
+        </div>
+
+        <!-- Tableau par algorithme -->
+        <table class="table" style="margin-top: 20px;">
+            <thead>
+            <tr>
+                <th>Algorithme</th>
+                <th>Durée moyenne (s)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if hash_stats %}
+                {% for algorithm, avg_duration in hash_stats.items() %}
+                    <tr>
+                        <td>{{ algorithm }}</td>
+                        <td>{{ avg_duration | round(8) }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="2">Aucune donnée de hashage disponible.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- JS global de ton app -->
+<script src="/static/app.js"></script>
+
+<!-- Script pour les graphiques -->
+<script>
+    // Valeurs chiffrage / déchiffrage (en secondes côté Python)
+    const avgEncrypt = {{ (avg_encrypt | default(0)) | tojson }};
+    const avgDecrypt = {{ (avg_decrypt | default(0)) | tojson }};
+    const algoLabels = {{ (algo_labels | default([])) | tojson }};
+    const algoValues = {{ (algo_values | default([])) | tojson }};
+
+    // Valeurs hashage (déjà en millisecondes côté Python)
+    const hashLabels = {{ (hash_labels | default([])) | tojson }};
+    const hashValues = {{ (hash_values | default([])) | tojson }};
+
+    // Conversion secondes -> millisecondes pour les graphiques encrypt/decrypt
+    const avgEncryptMs = avgEncrypt * 1000;
+    const avgDecryptMs = avgDecrypt * 1000;
+    const algoValuesMs = algoValues.map(v => v * 1000);
+
+    // Chart Encrypt vs Decrypt
+    const encryptDecryptCanvas = document.getElementById('avgEncryptDecryptChart');
+    if (encryptDecryptCanvas) {
+        const ctx1 = encryptDecryptCanvas.getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: ['Encrypt', 'Decrypt'],
+                datasets: [{
+                    label: 'Temps moyen (millisecondes)',
+                    data: [avgEncryptMs, avgDecryptMs],
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Chart encrypt par algorithme
+    const algoCanvas = document.getElementById('algoAvgChart');
+    if (algoCanvas) {
+        const ctx2 = algoCanvas.getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: algoLabels,
+                datasets: [{
+                    label: 'Temps moyen encrypt (millisecondes)',
+                    data: algoValuesMs,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Histogramme des algorithmes de hash
+    const hashCanvas = document.getElementById('hashAlgoChart');
+    if (hashCanvas) {
+        const ctx3 = hashCanvas.getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: hashLabels,
+                datasets: [{
+                    label: 'Temps moyen hash (millisecondes)',
+                    data: hashValues, // déjà en ms
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

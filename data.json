@@ -1,0 +1,52 @@
+{
+    "database": {
+        "performances": [
+            {
+                "data_lenth": 512,
+                "duration": 0.0013165473937988281,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "RSA_PKCS",
+                "data_lenth": 16,
+                "duration": 0.0003840923309326172,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "md5",
+                "data_lenth": 11,
+                "duration": 3.2901763916015625e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "RSA_PKCS",
+                "data_lenth": 25,
+                "duration": 0.0002295970916748047,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA_PKCS",
+                "data_lenth": 25,
+                "duration": 0.0001735687255859375,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.001107931137084961,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": 0,
+                "data_lenth": 12,
+                "duration": 0.00024366378784179688,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 12,
+                "duration": 0.00027298927307128906,
+                "operation_type": "encrypt_data"
+            }
+        ]
+    }
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
+
+        <!-- Boutons de navigation -->
+        <div class="nav-links">
+            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
+            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
+            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
+            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
+            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
+            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+        </div>
+    </div>
+
+    <form method="post", action="/generate-keys">
+    <!-- Gestion / génération des clés -->
+    <div class="card">
+
+        <div class="card-header">
+            <h3>Gestion des Clés Cryptographiques</h3>
+        </div>
+        <p class="section-description">
+            Génère une paire de clés 2048 bits sécurisée en choisissant le type et un label personnalisé
+        </p>
+
+        <div class="form-group">
+            <label class="form-label" for="keyTypeSelect">Type de clé</label>
+            <select name="keyType" id="keyTypeSelect" class="form-select compact">
+                <option value="RSA" selected>RSA</option>
+                <option value="AES" selected>AES</option>
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="keyLabelInput">Label de la clé</label>
+            <input type="text" name="keyLabel" id="keyLabelInput" class="form-control" placeholder="ex: key_signature_projet">
+        </div>
+
+        <button class="btn">
+            Générer la clé
+        </button>
+    </div>
+    </form>
+    <!-- Zone de résultats commune -->
+</div>
+
+<script src="/static/app.js"></script>
+<script>
+    // Charger les clés au chargement de la page
+    document.addEventListener('DOMContentLoaded', function () {
+        loadKeys();
+    });
+</script>
+</body>
+</html>

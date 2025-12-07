@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
+
+        <!-- Boutons de navigation -->
+        <div class="nav-links">
+            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
+            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
+            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
+            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
+            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
+            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+        </div>
+    </div>
+
+    <form method="POST" action="/hash-sign">
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Sélection de la Clé privée pour signer</h3>
+        </div>
+        <p class="section-description">
+            Choisissez la clé privée à utiliser pour signer
+        </p>
+
+        <select name="keyPrivateSelector" id="keyPrivateSelector" class="form-select">
+            <option value="">Chargement des clés...</option>
+
+
+            {% for key in keys_privates %}
+                <option value="{{ key.label }}">{{ key.label }}</option>
+            {% endfor %}
+
+        </select>
+
+
+    </div>
+
+
+    <!-- Hachage + Signature -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Hachage + Signature</h3>
+        </div>
+        <p class="section-description">
+            Pattern sécurité complet : Intégrité + Authenticité
+        </p>
+
+        <textarea name="hashSignInput" id="hashSignInput" class="textarea" placeholder="Données à hacher et signer..."></textarea>
+
+        <select name="hashAlgorithm" id="hashAlgorithm" class="form-select compact">
+            <option value="sha256">SHA-256</option>
+            <option value="sha512">SHA-512</option>
+            <option value="sha3_256">SHA3-256</option>
+        </select>
+
+        <div class="btn-group">
+            <button class="btn" onclick="hashAndSign()">Hacher et signer</button>
+            <button class="btn btn-success" onclick="showVerificationSection()">Vérifier</button>
+        </div>
+
+
+    </div>
+    </form>
+
+    <form method="post" action="/verify-hash-signature">
+     <!-- Section vérification (identique à ton code actuel) -->
+        <div class="card">
+        <div class="card-header">
+            <h3>Sélection de la Clé publique pour vérifier la signature</h3>
+        </div>
+        <p class="section-description">
+            Choisissez la clé publiques à utiliser pour vérifier la signature
+        </p>
+
+        <select name="keyPublicSelector"  class="form-select">
+            <option value="">Chargement des clés...</option>
+
+            {% for key in keys_publics %}
+                <option value="{{ key.label }}">{{ key.label }}</option>
+            {% endfor %}
+
+        </select>
+
+
+    </div>
+
+
+
+
+
+
+
+        <div id="verificationSection" class="panel">
+
+            <h4 class="panel-title">Vérification Hachage + Signature</h4>
+
+             <select name="hashAlgorithm"  class="form-select compact">
+            <option value="sha256">SHA-256</option>
+            <option value="sha512">SHA-512</option>
+            <option value="sha3_256">SHA3-256</option>
+             </select>
+
+            <div class="form-group">
+                <label class="form-label">Signature à vérifier:</label>
+                <textarea name="signature" id="verificationSignature" class="textarea small" placeholder="Collez la signature ici..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Hash attendu:</label>
+                <textarea name="hashSignInput" id="verificationHash" class="textarea small" placeholder="Collez le hash ici..."></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="">Lancer la vérification</button>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="/static/app.js"></script>
+<script>
+    // Charger les clés au chargement de la page
+    document.addEventListener('DOMContentLoaded', function () {
+        loadKeys();
+    });
+</script>
+</body>
+</html>

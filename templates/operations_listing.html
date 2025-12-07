@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
+
+        <!-- Boutons de navigation -->
+        <div class="nav-links">
+            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
+            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
+            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
+            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
+            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
+            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+        </div>
+    </div>
+
+    <!-- Liste des clés -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Clés disponibles</h3>
+        </div>
+        <p class="section-description">
+            Visualisez les clés privées et publiques présentes sur le HSM.
+        </p>
+
+        <!-- Tableau des clés privées -->
+        <h4>Clés privées</h4>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Label</th>
+                <th>ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if private_keys %}
+                {% for key in private_keys %}
+                    <tr>
+                        <td>{{ key.label or "(sans label)" }}</td>
+                        <td>{{ key.id }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="2">Aucune clé privée trouvée.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Tableau des clés publiques -->
+        <h4 style="margin-top: 2rem;">Clés publiques</h4>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Label</th>
+                <th>ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if public_keys %}
+                {% for key in public_keys %}
+                    <tr>
+                        <td>{{ key.label or "(sans label)" }}</td>
+                        <td>{{ key.id }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="2">Aucune clé publique trouvée.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <p class="section-description" style="font-size: 0.9rem; margin-top: 10px;">
+            Les clés désactivées apparaissent également dans ces listes. Gérez leur statut depuis la page
+            « Gestion des clés » si nécessaire.
+        </p>
+    </div>
+
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

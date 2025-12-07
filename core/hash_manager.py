@@ -1,4 +1,8 @@
 ﻿import hashlib
+import json
+import os
+import time
+
 from cryptography.hazmat.primitives import hashes as crypto_hashes
 from cryptography.hazmat.backends import default_backend
 
@@ -25,21 +29,39 @@ class HashManager:
         """
         if algorithm not in self.supported_algorithms:
             raise ValueError(f"Algorithme non supporté: {algorithm}")
-        
+
         data_bytes = data.encode('utf-8') if isinstance(data, str) else data
         
         if algorithm in ['sha256', 'sha512']:
             # Utilisation de cryptography pour certains algorithmes
+            start_time = time.time()
             digest = crypto_hashes.Hash(
                 getattr(crypto_hashes, algorithm.upper())(),
                 backend=default_backend()
             )
             digest.update(data_bytes)
+            end_time = time.time()
+
+            duration = end_time - start_time
+
+            self.write_to_json({"algorithm": algorithm,
+                                "data_lenth": len(data),
+                                "duration": duration,
+                                "operation_type": "hash"
+                                })
             return digest.finalize().hex()
         else:
             # Utilisation de hashlib pour les autres
+            start_time = time.time()
             hash_func = self.supported_algorithms[algorithm]()
             hash_func.update(data_bytes)
+            end_time = time.time()
+            duration = end_time - start_time
+            self.write_to_json({"algorithm": algorithm,
+                                "data_lenth": len(data),
+                                "duration": duration,
+                                "operation_type": "hash"
+                                })
             return hash_func.hexdigest()
     
     def verify_integrity(self, data, expected_hash, algorithm='sha256'):
@@ -118,3 +140,11 @@ class HashManager:
         })
         
         return examples
+
+    def write_to_json(self, data):
+        with open(os.environ["data_file"], 'r+') as file:
+            file_data = json.load(file)
+            print(file_data)
+            file_data["database"]["performances"].append(data)
+            file.seek(0)
+            json.dump(file_data, file, indent=4)

@@ -1,507 +1,4 @@
-﻿<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 HSM Crypto Manager</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --background: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --border: #334155;
-        }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, var(--background) 0%, #1e1b4b 100%);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 30px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        /* Styles pour les onglets */
-        .tabs {
-            display: flex;
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 8px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px 20px;
-            text-align: center;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .tab:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--text);
-        }
-
-        .tab.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        .card-header h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-left: 12px;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-        }
-
-        .textarea {
-            width: 100%;
-            min-height: 100px;
-            background: #0f172a;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            color: var(--text);
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            resize: vertical;
-            margin-bottom: 10px;
-        }
-
-        .result {
-            background: #0f172a;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid var(--primary);
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        .result.success {
-            border-left-color: var(--success);
-        }
-
-        .result.info {
-            border-left-color: var(--primary);
-        }
-
-        .concept-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .concept-item {
-            background: #0f172a;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-        }
-
-        .concept-item h4 {
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-
-        .code-block {
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 8px 0;
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.8rem;
-            overflow-x: auto;
-        }
-
-        .performance {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-top: 8px;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-   <div class="container">
-    <!-- En-tête simplifié -->
-    <div class="header">
-        <h1>🔐 HSM Crypto Manager</h1>
-        <p>Application de démonstration des concepts cryptographiques</p>
-
-        <!-- Bouton de gestion des clés -->
-        <a href="/keys" style="display: inline-block; background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%); color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3); transition: all 0.3s ease;">
-            📋 Gestion des Clés
-        </a>
-    </div>
-
-
-        <!-- Système d'onglets -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('operations')">🔧 Opérations Cryptographiques</button>
-            <button class="tab" onclick="switchTab('analysis')">📊 Analyse et Comparaison</button>
-        </div>
-
-        <!-- Onglet 1: Opérations Cryptographiques -->
-        <div id="operations" class="tab-content active">
-            <!-- Génération de clés -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🗝️</div>
-                    <h3>Gestion des Clés Cryptographiques</h3>
-                </div>
-
-
-
-
-<!-- Liste des clés disponibles -->
-<div class="card">
-    <div class="card-header">
-        <div class="icon">📋</div>
-        <h3>Sélection de la Clé</h3>
-    </div>
-    <p style="color: var(--text-secondary); margin-bottom: 15px;">
-        Choisissez la clé à utiliser pour les opérations cryptographiques
-    </p>
-
-    <!-- Sélecteur de clé -->
-    <select id="keySelector" class="select" onchange="updateKeyInfo()">
-        <option value="">Chargement des clés...</option>
-    </select>
-
-    <!-- Info de la clé sélectionnée -->
-    <div id="keyInfo" class="key-info" style="display: none; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border); margin-top: 10px;">
-        <div>
-            <strong id="currentKeyLabel">key_1</strong>
-            <div style="color: var(--text-secondary); font-size: 0.9rem;">
-                <span id="currentKeyType">RSA 2048 bits</span>
-            </div>
-        </div>
-        <div style="text-align: right; margin-top: 10px;">
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">
-                Dernier usage: <span id="currentKeyUsage">Jamais</span>
-            </div>
-            <div style="font-size: 0.8rem;">
-                Statut: <span id="currentKeyStatus" class="status-active">Actif</span>
-            </div>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <button class="btn btn-success" onclick="activateCurrentKey()" id="activateBtn">
-                Activer la clé
-            </button>
-            <button class="btn btn-warning" onclick="deactivateCurrentKey()" id="deactivateBtn">
-                Désactiver la clé
-            </button>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <button class="btn btn-success" onclick="useSelectedKeyForOperation('sign')">✍️ Utiliser pour Signature</button>
-            <button class="btn btn-warning" onclick="useSelectedKeyForOperation('encrypt')">🔐 Utiliser pour Chiffrement</button>
-            <button class="btn btn-info" onclick="useSelectedKeyForOperation('hash-sign')">🔏 Hachage + Signature</button>
-        </div>
-    </div>
-
-    <button class="btn btn-secondary" onclick="loadKeys()" style="margin-top: 10px;">
-        🔄 Actualiser la liste
-    </button>
-</div>
-
-
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">
-                    Génère une paire de clés RSA 2048 bits sécurisée
-                </p>
-                <button class="btn" onclick="generateKeys()">
-                    ⚡ Générer les Clés RSA
-                </button>
-            </div>
-
-            <!-- Signature numérique simple -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">📝</div>
-                    <h3>Signature Numérique</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Signez des données avec votre clé privée sécurisée
-                </p>
-                <textarea
-                    id="simpleDataInput"
-                    class="textarea"
-                    placeholder="Entrez le texte à signer..."
-                >Mon document important</textarea>
-                <div class="btn-group">
-                    <button class="btn btn-success" onclick="simpleSignData()">
-                        ✍️ Signer les Données
-                    </button>
-                    <button class="btn" onclick="simpleVerifyData()">
-                        ✅ Vérifier Signature
-                    </button>
-                </div>
-            </div>
-
-            <!-- Chiffrement simple -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🔒</div>
-                    <h3>Chiffrement</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Chiffrez et déchiffrez des messages avec cryptographie RSA
-                </p>
-                <textarea
-                    id="simpleEncryptInput"
-                    class="textarea"
-                    placeholder="Entrez le message à chiffrer..."
-                >Message secret</textarea>
-                <div class="btn-group">
-                    <button class="btn" onclick="simpleEncryptData()">
-                        🔐 Chiffrer les Données
-                    </button>
-                    <button class="btn" onclick="simpleDecryptData()">
-                        🔓 Déchiffrer Données
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Hachage + Signature -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🔐</div>
-                    <h3>Hachage + Signature</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Pattern sécurité complet : Intégrité + Authenticité
-                </p>
-                
-                <!-- Zone de saisie principale -->
-                <textarea id="hashSignInput" class="textarea" placeholder="Données à hacher et signer..."></textarea>
-                
-                <!-- Sélecteur d'algorithme -->
-                <select id="hashAlgorithm" style="margin-bottom: 10px; padding: 8px; border-radius: 6px; background: #0f172a; color: white; border: 1px solid var(--border);">
-                    <option value="sha256">SHA-256</option>
-                    <option value="sha512">SHA-512</option>
-                    <option value="sha3_256">SHA3-256</option>
-                </select>
-                
-                <div class="btn-group">
-                    <button class="btn" onclick="hashAndSign()">🔐 Hacher + Signer</button>
-                    <button class="btn btn-success" onclick="showVerificationSection()">✅ Vérifier</button>
-                </div>
-
-                <!-- Section de vérification (cachée par défaut) -->
-                <div id="verificationSection" style="display: none; margin-top: 20px; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 10px; border: 1px solid var(--border);">
-                    <h4 style="margin-bottom: 15px; color: var(--primary);">🔍 Vérification Hachage + Signature</h4>
-                    
-                    <!-- Champs pour la vérification -->
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">Signature à vérifier:</label>
-                        <textarea id="verificationSignature" class="textarea" placeholder="Collez la signature ici..." style="min-height: 60px;"></textarea>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">Hash attendu:</label>
-                        <textarea id="verificationHash" class="textarea" placeholder="Collez le hash ici..." style="min-height: 60px;"></textarea>
-                    </div>
-                    
-                    <!-- Boutons de vérification -->
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="verifyHashSignature()">🔍 Lancer la Vérification</button>
-                        <button class="btn" onclick="hideVerificationSection()">❌ Annuler</button>
-                        <button class="btn" onclick="autoFillVerification()">📋 Remplir Automatiquement</button>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Fonctions de hachage -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🗳️</div>
-                    <h3>Fonctions de Hachage</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Calcul et vérification d'intégrité
-                </p>
-                <textarea id="hashInput" class="textarea" placeholder="Données à hacher..."></textarea>
-                <div class="btn-group">
-                    <button class="btn" onclick="computeHash()">🗳️ Calculer Hash</button>
-                    <button class="btn btn-warning" onclick="demonstrateCollisionResistance()">🛡️ Résistance Collisions</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Onglet 2: Analyse et Comparaison -->
-        <div id="analysis" class="tab-content">
-            <!-- Concepts cryptographiques -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🎯</div>
-                    <h3>Concepts Cryptographiques</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Démonstration pratique des concepts fondamentaux
-                </p>
-                <button class="btn btn-success" onclick="demonstrateConcepts()">
-                    🎓 Démontrer les Concepts
-                </button>
-            </div>
-
-            <!-- Analyse de performances -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">📊</div>
-                    <h3>Analyse des Performances</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Benchmark cryptographique et analyse d'impact
-                </p>
-                <div class="btn-group">
-                    <button class="btn" onclick="benchmarkPerformance()">⚡ Benchmark Performances</button>
-                    <button class="btn btn-warning" onclick="benchmarkHashAlgorithms()">🔍 Benchmark Hachage</button>
-                </div>
-            </div>
-
-            <!-- Résistance aux collisions -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon">🛡️</div>
-                    <h3>Propriétés Cryptographiques</h3>
-                </div>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                    Démonstrations avancées des propriétés de sécurité
-                </p>
-                <div class="btn-group">
-                    <button class="btn btn-warning" onclick="demonstrateCollisionResistance()">
-                        🛡️ Résistance aux Collisions
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Zone des résultats (commune aux deux onglets) -->
-        <div id="results"></div>
-    </div>
-
-    <script>
         // Gestion des onglets
         function switchTab(tabName) {
             // Désactiver tous les onglets
@@ -523,7 +20,7 @@
             const algorithm = document.getElementById('hashAlgorithm').value;
             
             if (!data) {
-                showResult('❌ Veuillez entrer des données', 'error');
+                showResult(' Veuillez entrer des données', 'error');
                 return;
             }
 
@@ -537,7 +34,7 @@
                 const result = await response.json();
                 displayHashSignResult(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -548,7 +45,7 @@
             const algorithm = document.getElementById('hashAlgorithm').value;
             
             if (!data || !signature || !expectedHash) {
-                showResult('❌ Données manquantes', 'error');
+                showResult(' Données manquantes', 'error');
                 return;
             }
 
@@ -562,7 +59,7 @@
                 const result = await response.json();
                 displayVerificationResult(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -571,7 +68,7 @@
             const algorithm = document.getElementById('hashAlgorithm').value;
             
             if (!data) {
-                showResult('❌ Veuillez entrer des données', 'error');
+                showResult(' Veuillez entrer des données', 'error');
                 return;
             }
 
@@ -585,7 +82,7 @@
                 const result = await response.json();
                 displayHashResult(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -596,7 +93,7 @@
                 const result = await response.json();
                 displayPerformanceResults(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -613,7 +110,7 @@
                 const result = await response.json();
                 displayHashBenchmarkResults(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -624,7 +121,7 @@
                 const result = await response.json();
                 displayConceptsDemo(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
@@ -635,21 +132,21 @@
                 const result = await response.json();
                 displayCollisionDemo(result);
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
 
         // Fonctions d'affichage des résultats
         function displayHashSignResult(result) {
             if (result.success) {
-                let html = `✅ <strong>Hachage + Signature réussis!</strong><br><br>`;
+                let html = ` <strong>Hachage + Signature réussis!</strong><br><br>`;
                 html += `<strong>Hash (${result.hash_algorithm}):</strong><br><div class="code-block">${result.hash}</div><br>`;
                 html += `<strong>Signature:</strong><br><div class="code-block">${result.signature}</div><br>`;
                 html += `<strong>Performance:</strong><br>`;
                 html += `<div class="code-block">${JSON.stringify(result.performance, null, 2)}</div>`;
                 showResult(html, 'success');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -693,7 +190,7 @@ function displayPerformanceResults(result) {
 
         showResult(html, 'info');
     } else {
-        showResult(`❌ Erreur: ${result.error}`, 'error');
+        showResult(` Erreur: ${result.error}`, 'error');
     }
 }
 
@@ -715,7 +212,7 @@ function displayPerformanceResults(result) {
                 html += `</div>`;
                 showResult(html, 'info');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -727,7 +224,7 @@ function displayPerformanceResults(result) {
                 html += `<strong>Temps:</strong> ${result.processing_time}<br>`;
                 showResult(html, 'success');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -735,12 +232,12 @@ function displayPerformanceResults(result) {
             if (result.success) {
                 const isValid = result.valid;
                 let html = isValid ? 
-                    `🎉 <strong>VÉRIFICATION RÉUSSIE</strong><br>` :
-                    `❌ <strong>VÉRIFICATION ÉCHOUÉE</strong><br>`;
+                    ` <strong>VÉRIFICATION RÉUSSIE</strong><br>` :
+                    ` <strong>VÉRIFICATION ÉCHOUÉE</strong><br>`;
                 html += `<div>${result.message}</div>`;
                 showResult(html, isValid ? 'success' : 'error');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -761,7 +258,7 @@ function displayPerformanceResults(result) {
                 
                 showResult(html, 'info');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -784,7 +281,7 @@ function displayPerformanceResults(result) {
                 
                 showResult(html, 'info');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -813,27 +310,55 @@ async function loadKeys() {
         if (result.success) {
             availableKeys = result.keys;
             updateKeySelector(availableKeys);
-            showResult(`✅ ${result.keys.length} clé(s) chargée(s)`, 'success');
+            showResult(` ${result.keys.length} clé(s) chargée(s)`, 'success');
         } else {
-            showResult(`❌ Erreur: ${result.error}`, 'error');
+            showResult(` Erreur: ${result.error}`, 'error');
         }
     } catch (error) {
-        showResult(`💥 Erreur réseau: ${error.message}`, 'error');
+        showResult(` Erreur réseau: ${error.message}`, 'error');
     }
 }
 
 // Mettre à jour le sélecteur de clés
 function updateKeySelector(keys) {
     const selector = document.getElementById('keySelector');
-    selector.innerHTML = '<option value="">Sélectionner une clé...</option>';
+    selector.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+
+    if (!keys || keys.length === 0) {
+        placeholder.textContent = 'Aucune clé disponible';
+        selector.appendChild(placeholder);
+        selector.disabled = true;
+        hideKeyInfo();
+        return;
+    }
+
+    const normalizeStatus = status => (status || 'active').toLowerCase();
+    const activeKeys = keys.filter(key => normalizeStatus(key.status) === 'active');
+
+    placeholder.textContent = activeKeys.length
+        ? 'Sélectionner une clé...'
+        : 'Toutes les clés sont désactivées';
+    selector.appendChild(placeholder);
+    selector.disabled = false;
 
     keys.forEach(key => {
-        if (key.status === 'active') {
-            const option = document.createElement('option');
-            option.value = key.key_id;
-            option.textContent = `${key.key_id} (${key.key_size} bits) - ${key.usage_count} utilisations`;
-            selector.appendChild(option);
-        }
+        const option = document.createElement('option');
+        option.value = key.key_id;
+        const usageCount = typeof key.usage_count === 'number' ? key.usage_count : 0;
+        const keySize = key.key_size || '—';
+        const status = normalizeStatus(key.status);
+        const statusSuffix = status !== 'active'
+            ? ` • ${status === 'inactive' ? 'désactivée' : status}`
+            : '';
+
+        option.textContent = `${key.key_id} (${keySize} bits) - ${usageCount} utilisations${statusSuffix}`;
+        option.dataset.status = status;
+        selector.appendChild(option);
     });
 
     // Afficher les infos quand une clé est sélectionnée
@@ -852,6 +377,9 @@ function showKeyInfo(keyId) {
     const key = availableKeys.find(k => k.key_id === keyId);
     if (!key) return;
 
+    const status = (key.status || 'active').toLowerCase();
+    const statusLabel = status === 'active' ? '🟢 Active' : '⛔ Désactivée';
+
     const keyInfoDiv = document.getElementById('keyInfo');
     const keyDetailsDiv = document.getElementById('keyDetails');
 
@@ -865,6 +393,9 @@ function showKeyInfo(keyId) {
 
             <div><strong>Taille:</strong></div>
             <div>${key.key_size} bits</div>
+
+            <div><strong>Statut:</strong></div>
+            <div>${statusLabel}</div>
 
             <div><strong>Créée le:</strong></div>
             <div>${new Date(key.created_at).toLocaleString('fr-FR')}</div>
@@ -887,6 +418,11 @@ function showKeyInfo(keyId) {
                 🔐 Utiliser pour Hachage+Signature
             </button>
         </div>
+
+        ${status !== 'active' ? `
+            <div style="margin-top: 12px; padding: 10px; border-radius: 10px; background: rgba(239, 68, 68, 0.12); color: #fca5a5;">
+                Cette clé est désactivée. Activez-la depuis l'onglet \"Gestion des clés\" avant de l'utiliser pour une opération.
+            </div>` : ''}
     `;
 
     keyInfoDiv.style.display = 'block';
@@ -901,24 +437,30 @@ function hideKeyInfo() {
 function useSelectedKeyForOperation(operationType) {
     const keySelector = document.getElementById('keySelector');
     const selectedKeyId = keySelector.value;
+    const selectedKey = availableKeys.find(k => k.key_id === selectedKeyId);
 
     if (!selectedKeyId) {
-        showResult('❌ Veuillez sélectionner une clé', 'error');
+        showResult(' Veuillez sélectionner une clé', 'error');
+        return;
+    }
+
+    if (selectedKey && (selectedKey.status || '').toLowerCase() !== 'active') {
+        showResult(' Cette clé est désactivée. Réactivez-la dans la gestion des clés pour l\'utiliser.', 'error');
         return;
     }
 
     switch(operationType) {
         case 'sign':
             document.getElementById('simpleDataInput').focus();
-            showResult(`✅ Clé ${selectedKeyId} sélectionnée pour signature. Remplissez les données et cliquez sur "Signer".`, 'success');
+            showResult(` Clé ${selectedKeyId} sélectionnée pour signature. Remplissez les données et cliquez sur "Signer".`, 'success');
             break;
         case 'encrypt':
             document.getElementById('simpleEncryptInput').focus();
-            showResult(`✅ Clé ${selectedKeyId} sélectionnée pour chiffrement. Remplissez les données et cliquez sur "Chiffrer".`, 'success');
+            showResult(` Clé ${selectedKeyId} sélectionnée pour chiffrement. Remplissez les données et cliquez sur "Chiffrer".`, 'success');
             break;
         case 'hash-sign':
             document.getElementById('hashSignInput').focus();
-            showResult(`✅ Clé ${selectedKeyId} sélectionnée pour hachage+signature. Remplissez les données et cliquez sur "Hacher+Signer".`, 'success');
+            showResult(` Clé ${selectedKeyId} sélectionnée pour hachage+signature. Remplissez les données et cliquez sur "Hacher+Signer".`, 'success');
             break;
     }
 }
@@ -929,7 +471,7 @@ async function simpleSignData() {
     const keyId = document.getElementById('keySelector').value;
 
     if (!data) {
-        showResult('❌ Veuillez entrer des données à signer', "error");
+        showResult(' Veuillez entrer des données à signer', "error");
         return;
     }
 
@@ -942,7 +484,7 @@ async function simpleSignData() {
         });
         const result = await response.json();
         if (result.success) {
-            let html = `✅ <strong>Signature créée avec succès!</strong><br><br>`;
+            let html = ` <strong>Signature créée avec succès!</strong><br><br>`;
             if (keyId) html += `<strong>Clé utilisée:</strong> ${keyId}<br>`;
             html += `<strong>Signature numérique:</strong>
                     <div class="code-block">${result.signature}</div>
@@ -952,10 +494,10 @@ async function simpleSignData() {
             // Recharger la liste pour mettre à jour les compteurs
             setTimeout(loadKeys, 1000);
         } else {
-            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+            showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
         }
     } catch (error) {
-        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+        showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
     }
 }
 
@@ -964,7 +506,7 @@ async function simpleEncryptData() {
     const keyId = document.getElementById('keySelector').value;
 
     if (!data) {
-        showResult('❌ Veuillez entrer des données à chiffrer', "error");
+        showResult(' Veuillez entrer des données à chiffrer', "error");
         return;
     }
 
@@ -977,7 +519,7 @@ async function simpleEncryptData() {
         });
         const result = await response.json();
         if (result.success) {
-            let html = `✅ <strong>Données chiffrées avec succès!</strong><br><br>`;
+            let html = ` <strong>Données chiffrées avec succès!</strong><br><br>`;
             if (keyId) html += `<strong>Clé utilisée:</strong> ${keyId}<br>`;
             html += `<strong>Message chiffré:</strong>
                     <div class="code-block">${result.encrypted_data}</div>`;
@@ -992,10 +534,10 @@ async function simpleEncryptData() {
             // Recharger la liste pour mettre à jour les compteurs
             setTimeout(loadKeys, 1000);
         } else {
-            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+            showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
         }
     } catch (error) {
-        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+        showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
     }
 }
 
@@ -1005,7 +547,7 @@ async function hashAndSign() {
     const keyId = document.getElementById('keySelector').value;
 
     if (!data) {
-        showResult('❌ Veuillez entrer des données', 'error');
+        showResult(' Veuillez entrer des données', 'error');
         return;
     }
 
@@ -1024,7 +566,7 @@ async function hashAndSign() {
             setTimeout(loadKeys, 1000);
         }
     } catch (error) {
-        showResult(`💥 Erreur: ${error.message}`, 'error');
+        showResult(` Erreur: ${error.message}`, 'error');
     }
 }
 
@@ -1037,23 +579,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Fonctions pour les opérations simples
         async function generateKeys() {
-    showResult("⏳ Génération des clés RSA 2048 bits en cours...", "warning");
+    const keyTypeField = document.getElementById('keyTypeSelect');
+    const keyLabelField = document.getElementById('keyLabelInput');
+    const selectedType = keyTypeField ? keyTypeField.value : 'RSA';
+    const keyLabel = keyLabelField ? keyLabelField.value.trim() : '';
+
+    if (keyLabelField && !keyLabel) {
+        showResult(' Veuillez saisir un label pour la clé', 'error');
+        return;
+    }
+
+    showResult(`⏳ Génération de la clé ${selectedType} 2048 bits en cours...`, "warning");
     try {
-        // Utiliser la nouvelle route avec stockage
+        const payload = { key_size: 2048, key_type: selectedType };
+        if (keyLabel) {
+            payload.key_label = keyLabel;
+        }
+
         const response = await fetch('/api/keys/generate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ key_size: 2048 })
+            body: JSON.stringify(payload)
         });
         const result = await response.json();
         if (result.success) {
-            let html = `🎉 <strong>Clés générées avec succès!</strong><br>`;
-            html += `<strong>ID de la clé:</strong> ${result.key_id}<br>`;
+            let html = ` <strong>Clé générée avec succès!</strong><br>`;
+            html += `<strong>ID de la clé:</strong> ${result.key_id || keyLabel || '—'}<br>`;
+            html += `<strong>Type:</strong> ${result.key_type || selectedType}<br>`;
             html += `<strong>Taille:</strong> ${result.key_size} bits<br>`;
-            html += `<strong>Stockage:</strong> ${result.stored_in_db ? '✅ Base de données' : '❌ Non stockée'}<br>`;
+            if (result.key_label || keyLabel) {
+                html += `<strong>Label:</strong> ${result.key_label || keyLabel}<br>`;
+            }
+            html += `<strong>Stockage:</strong> ${result.stored_in_db ? ' Base de données' : ' Non stockée'}<br>`;
             html += `<div class="performance">⏱️ ${result.processing_time}</div>`;
 
-            // Lien vers la gestion des clés
             html += `<br><div style="margin-top: 15px;">
                 <a href="/keys" style="display: inline-block; background: var(--primary); color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                     📋 Voir toutes les clés
@@ -1062,16 +621,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             showResult(html, "success");
         } else {
-            showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+            showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
         }
     } catch (error) {
-        showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+        showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
     }
 }
         async function simpleSignData() {
             const data = document.getElementById('simpleDataInput').value;
             if (!data) {
-                showResult('❌ Veuillez entrer des données à signer', "error");
+                showResult(' Veuillez entrer des données à signer', "error");
                 return;
             }
 
@@ -1084,22 +643,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showResult(`✅ <strong>Signature créée avec succès!</strong><br><br>
+                    showResult(` <strong>Signature créée avec succès!</strong><br><br>
                             <strong>Signature numérique:</strong>
                             <div class="code-block">${result.signature}</div>
                             <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
                 } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                    showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
                 }
             } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
             }
         }
 
         async function simpleVerifyData() {
             const data = document.getElementById('simpleDataInput').value;
             if (!data) {
-                showResult('❌ Veuillez entrer des données à vérifier', "error");
+                showResult(' Veuillez entrer des données à vérifier', "error");
                 return;
             }
 
@@ -1116,17 +675,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (result.success) {
                         const isValid = result.valid;
                         showResult(isValid ?
-                            `🎉 <strong>Signature VALIDE</strong> - Document authentique<br>
+                            ` <strong>Signature VALIDE</strong> - Document authentique<br>
                             <div class="performance">⏱️ ${result.processing_time}</div>` :
-                            `❌ <strong>Signature INVALIDE</strong> - Document corrompu<br>
+                            ` <strong>Signature INVALIDE</strong> - Document corrompu<br>
                             <div class="performance">⏱️ ${result.processing_time}</div>`,
                             isValid ? "success" : "error"
                         );
                     } else {
-                        showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                        showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
                     }
                 } catch (error) {
-                    showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                    showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
                 }
             }
         }
@@ -1134,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
         async function simpleEncryptData() {
             const data = document.getElementById('simpleEncryptInput').value;
             if (!data) {
-                showResult('❌ Veuillez entrer des données à chiffrer', "error");
+                showResult(' Veuillez entrer des données à chiffrer', "error");
                 return;
             }
 
@@ -1147,22 +706,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showResult(`✅ <strong>Données chiffrées avec succès!</strong><br><br>
+                    showResult(` <strong>Données chiffrées avec succès!</strong><br><br>
                             <strong>Message chiffré:</strong>
                             <div class="code-block">${result.encrypted_data}</div>
                             <div class="performance">⏱️ ${result.processing_time}</div>`, "success");
                 } else {
-                    showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                    showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
                 }
             } catch (error) {
-                showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+                showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
             }
         }
 
         async function simpleDecryptData() {
     const encrypted_data = prompt('Collez les données chiffrées:');
     if (encrypted_data) {
-        showResult("⏳ Déchiffrement sécurisé en cours...", "warning");
+        showResult("Déchiffrement sécurisé en cours...", "warning");
         try {
             const response = await fetch('/decrypt', {
                 method: 'POST',
@@ -1171,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (result.success) {
-                let html = `✅ <strong>Données déchiffrées avec succès!</strong><br><br>`;
+                let html = ` <strong>Données déchiffrées avec succès!</strong><br><br>`;
                 html += `<strong>Message original:</strong>`;
                 html += `<div class="code-block">${result.decrypted_data}</div>`;
 
@@ -1182,10 +741,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 showResult(html, "success");
             } else {
-                showResult(`❌ <strong>Erreur:</strong> ${result.error}`, "error");
+                showResult(` <strong>Erreur:</strong> ${result.error}`, "error");
             }
         } catch (error) {
-            showResult(`💥 <strong>Erreur réseau:</strong> ${error.message}`, "error");
+            showResult(` <strong>Erreur réseau:</strong> ${error.message}`, "error");
         }
     }
 }
@@ -1214,9 +773,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (lastResult) {
                 document.getElementById('verificationSignature').value = lastResult.signature || '';
                 document.getElementById('verificationHash').value = lastResult.hash || '';
-                showResult("✅ Données remplies automatiquement depuis la dernière opération", "success");
+                showResult(" Données remplies automatiquement depuis la dernière opération", "success");
             } else {
-                showResult("❌ Aucune donnée disponible pour le remplissage automatique", "error");
+                showResult(" Aucune donnée disponible pour le remplissage automatique", "error");
             }
         }
 
@@ -1241,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     z-index: 1000;
                     font-weight: 600;
                 `;
-                notification.textContent = '✅ Copié !';
+                notification.textContent = ' Copié !';
                 document.body.appendChild(notification);
                 
                 setTimeout(() => {
@@ -1262,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     algorithm: result.hash_algorithm
                 };
                 
-                let html = `✅ <strong>Hachage + Signature réussis!</strong><br><br>`;
+                let html = ` <strong>Hachage + Signature réussis!</strong><br><br>`;
                 html += `<strong>Hash (${result.hash_algorithm}):</strong><br>`;
                 html += `<div class="code-block" onclick="copyToClipboard('${result.hash}')" style="cursor: pointer;" title="Cliquer pour copier">${result.hash}</div><br>`;
                 html += `<strong>Signature:</strong><br>`;
@@ -1273,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // NOTE: Le bouton "Vérifier Maintenant" a été supprimé ici
                 showResult(html, 'success');
             } else {
-                showResult(`❌ Erreur: ${result.error}`, 'error');
+                showResult(` Erreur: ${result.error}`, 'error');
             }
         }
 
@@ -1285,12 +844,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const algorithm = document.getElementById('hashAlgorithm').value;
             
             if (!data) {
-                showResult('❌ Veuillez entrer des données dans la zone principale', 'error');
+                showResult(' Veuillez entrer des données dans la zone principale', 'error');
                 return;
             }
             
             if (!signature || !expectedHash) {
-                showResult('❌ Veuillez remplir tous les champs de vérification', 'error');
+                showResult(' Veuillez remplir tous les champs de vérification', 'error');
                 return;
             }
 
@@ -1316,9 +875,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                 }
             } catch (error) {
-                showResult(`💥 Erreur: ${error.message}`, 'error');
+                showResult(` Erreur: ${error.message}`, 'error');
             }
         }
-    </script>
-</body>
-</html>

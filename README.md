@@ -1,5 +1,7 @@
 # 🔐 HSM Local - Gestion Sécurisée des Clés Cryptographiques
 
+Autor : Ana Salimata SANOU
+
 ## 📋 Description
 Application Python/Flask permettant d'interagir avec un HSM (Hardware Security Module) local via SoftHSM pour la gestion sécurisée des clés cryptographiques.
 
@@ -87,4 +89,7 @@ SOFTHSM2_CONF=./softhsm2.conf softhsm2-util --init-token --slot 0 --label "MonHS
 
 ## 📝 Auteur 
 Projet réalisé dans le cadre de la gestion sécurisée des clés cryptographiques avec HSM open-source.
+
+
+## Commande to set up 
 

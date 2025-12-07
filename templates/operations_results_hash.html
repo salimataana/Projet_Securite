@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
+
+        <!-- Boutons de navigation -->
+      <div class="nav-links">
+
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>Response</h1>
+      {% if data_hashed %}
+            <p>La donnée hashed : {{ data_hashed }}</p>
+        {% endif %}
+
+
+    </div>
+
+
+
+</div>
+
+
+</body>
+</html>

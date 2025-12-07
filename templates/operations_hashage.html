@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>HSM Crypto Manager</h1>
+        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
+
+        <!-- Boutons de navigation -->
+       <div class="nav-links">
+            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
+            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
+            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
+            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
+            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
+            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+        </div>
+    </div>
+
+    <form method="POST" action="/hash">   <!-- Sélection de la clé -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Sélection de la méthode de Hashage</h3>
+        </div>
+        <p class="section-description">
+            Choisissez la methode à utiliser pour le hashage
+        </p>
+
+        <select name="methodHash" class="form-select">
+            <option value="md5">md5</option>
+            <option value="sha1">sha1</option>
+            <option value="sha256">sha256</option>
+            <option value="sha512">sha512</option>
+            <option value="sha3_256">sha3_256</option>
+            <option value="sha3_512">sha3_512</option>
+        </select>
+
+        <p class="section-description" style="font-size: 0.9rem; margin-top: 10px;">
+            Les clés désactivées apparaissent dans la liste. Réactivez-les depuis "Gestion des clés" pour pouvoir les utiliser ici.
+        </p>
+
+        <div id="keyInfo" class="key-info info-box" style="display: none;">
+            <div id="keyDetails">
+                <!-- rempli dynamiquement par showKeyInfo() -->
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+    <!-- Fonctions de hachage -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Fonctions de Hachage</h3>
+        </div>
+        <p class="section-description">
+            Calcul et vérification d'intégrité
+        </p>
+        <textarea name="hashInput" id="hashInput" class="textarea" placeholder="Données à hacher..."></textarea>
+
+
+
+        <div class="btn-group">
+            <button class="btn">Calculer le hash</button>
+            <button class="btn btn-warning" onclick="demonstrateCollisionResistance()">Démontrer la résistance aux collisions</button>
+        </div>
+    </div>
+    </form>
+
+</div>
+</body>
+</html>

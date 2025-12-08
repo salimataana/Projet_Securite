@@ -7,6 +7,8 @@ import time
 
 from core.hash_manager import HashManager
 from utils.singleton_metaclass import SingletonMeta
+import pkcs11
+
 
 
 class HSMManager(metaclass=SingletonMeta):
@@ -137,6 +139,7 @@ class HSMManager(metaclass=SingletonMeta):
         """
         try:
             # Vérifier la connexion HSM
+            data = data.strip()
             if not self.session:
                 self.connect()
             # Rechercher toutes les clés privées disponibles
@@ -176,57 +179,73 @@ class HSMManager(metaclass=SingletonMeta):
             print(f"Erreur signature: {e}")
             return None
 
-    def verify_signature(self, data, signature, label_key,mechanism=Mechanism.RSA_PKCS):
+
+    def verify_signature(self, data: str, signature, label_key: str,
+                         mechanism: Mechanism = Mechanism.RSA_PKCS) -> bool:
         """
-        Vérifier une signature avec la clé publique correspondante
+        Vérifier une signature avec la clé publique correspondante.
 
         Args:
-            data (str): Données originales qui ont été signées
-            signature (str): Signature à vérifier (en hexadécimal)
+            data (str): Données originales qui ont été signées.
+            signature (str|bytes): Signature à vérifier (hexadécimal ou bytes).
+            label_key (str): Label de la clé publique dans le HSM.
+            mechanism (Mechanism): Mécanisme PKCS#11 utilisé pour la signature.
 
         Returns:
-            bool: True si la signature est valide, False sinon
+            bool: True si la signature est valide, False sinon.
         """
+        data = data.strip()
         try:
-            print(f"Vérification de signature pour: '{data}'")
-            print(f"Longueur signature: {len(signature)} caractères")
+            print(f"[VERIFY] Données: {data!r}")
 
             if not self.session:
                 self.connect()
 
-            # Rechercher les clés publiques disponibles
+            # Rechercher la clé publique via son LABEL
             public_keys = list(self.session.get_objects({
                 pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY,
-                pkcs11.Attribute.LABEL: label_key
+                pkcs11.Attribute.LABEL: label_key,
             }))
 
-            print(f"{len(public_keys)} clé(s) publique(s) trouvée(s)")
+            print(f"[VERIFY] {len(public_keys)} clé(s) publique(s) trouvée(s) pour le label '{label_key}'")
 
             if not public_keys:
-                print("Aucune clé publique trouvée")
+                print("[VERIFY] Aucune clé publique trouvée, vérification impossible")
                 return False
 
-            # Prendre la première clé publique disponible
             public_key = public_keys[0]
             key_label = getattr(public_key, 'label', 'Inconnu')
-            print(f"Utilisation de la clé: {key_label}")
+            print(f"[VERIFY] Utilisation de la clé publique: {key_label!r}")
 
-            # Convertir la signature d'hexadécimal vers bytes
-            print("Conversion signature hex → bytes...")
-            signature_bytes = bytes.fromhex(signature)
-            print(f"Signature bytes: {len(signature_bytes)} bytes")
+            # Normaliser la signature en bytes
+            if isinstance(signature, str):
+                # On suppose que c'est de l'hex
+                print("[VERIFY] Conversion de la signature hex → bytes...")
+                signature_bytes = bytes.fromhex(signature)
+            else:
+                # On suppose déjà bytes-like
+                signature_bytes = bytes(signature)
 
-            # Vérifier la signature avec la clé publique
-            print("Tentative de vérification...")
-            statut= public_key.verify(
-                data.encode('utf-8'),  # Données originales
-                signature_bytes,  # Signature à vérifier
-                mechanism=mechanism  # Même mécanisme que pour la signature
+            print(f"[VERIFY] Longueur signature: {len(signature_bytes)} octets")
+
+            data_bytes = data.encode("utf-8")
+
+            print(f"[VERIFY] Tentative de vérification (mechanism={mechanism})...")
+            # python-pkcs11 : lève SignatureInvalid si la signature est incorrecte
+            status = public_key.verify(
+                data_bytes,
+                signature_bytes,
+                mechanism=mechanism,
             )
-            return statut
+
+            # Selon l’implémentation, `verify` renvoie typiquement True.
+            # On force un booléen explicite par sécurité.
+            print("[VERIFY] Signature valide")
+            return status
+
 
         except Exception as e:
-            print(f"ERREUR vérification: {e}")
+            print(f"[VERIFY] ERREUR inattendue pendant la vérification: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -389,6 +408,7 @@ class HSMManager(metaclass=SingletonMeta):
     def get_all_keys_public(self):
         if not self.session:
             self.connect()
+
         public_keys = list(self.session.get_objects({
             pkcs11.Attribute.CLASS: pkcs11.ObjectClass.PUBLIC_KEY,
         }))

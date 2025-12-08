@@ -5,37 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HSM Crypto Manager - Accueil</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-left: 5px solid #007bff;
+        }
+        .hero-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        .hero-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: white;
+            border: 2px solid #eaeaea;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #007bff;
+            box-shadow: 0 5px 15px rgba(0,123,255,0.1);
+        }
+        .feature-icon {
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+        .feature-card h4 {
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        .feature-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .nav-links {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #eee;
+        }
+        .muted-list {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .muted-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .muted-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <h1>HSM Crypto Manager</h1>
-        <p>Application de démonstration des concepts cryptographiques</p>
-
-       <div class="nav-links">
-            <a href="/" class="nav-link nav-dark">Accueil</a>
-            <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
-            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
-            <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
-            <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
-            <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
-            <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
-            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
-        </div>
+    <div class="hero-section">
+        <h1><i class="fas fa-shield-alt"></i> HSM Crypto Manager</h1>
+        <p>Bienvenue sur l'application de démonstration des concepts cryptographiques et gestion de clés HSM.</p>
     </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h3>Navigation</h3>
-            </div>
+    <div class="nav-links">
+        <a href="/" class="nav-link nav-dark"><i class="fas fa-home"></i> Accueil</a>
+        <a href="/operations_creation" class="nav-link nav-primary"><i class="fas fa-key"></i> Création</a>
+        <a href="/operations_listing" class="nav-link nav-primary"><i class="fas fa-list"></i> Listing</a>
+        <a href="/operations_chiffrement" class="nav-link nav-primary"><i class="fas fa-lock"></i> Chiffrement</a>
+        <a href="/operations_signature" class="nav-link nav-primary"><i class="fas fa-signature"></i> Signature</a>
+        <a href="/operations_hashage" class="nav-link nav-primary"><i class="fas fa-fingerprint"></i> Hashage</a>
+        <a href="/operations_signature_hashage" class="nav-link nav-primary"><i class="fas fa-file-signature"></i> Signature & Hash</a>
+        <a href="/operations_analysis" class="nav-link nav-info"><i class="fas fa-chart-bar"></i> Analyse</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="border-left: 5px solid #007bff;">
+            <h3><i class="fas fa-cogs"></i> Fonctionnalités Principales</h3>
+        </div>
         <p class="section-description">
-            Utilisez les boutons ci-dessus pour accéder aux différentes fonctionnalités :
+            Explorez les différentes opérations cryptographiques disponibles :
         </p>
-        <ul class="muted-list">
-            <li><strong>Opérations cryptographiques</strong> : génération de clés, signature, chiffrement, hachage…</li>
-            <li><strong>Analyse & comparaison</strong> : benchmarks, propriétés cryptographiques, démonstrations.</li>
-            <li><strong>Gestion des clés</strong> : page dédiée existante à l’URL <code>/keys</code>.</li>
-        </ul>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h4>Gestion des Clés</h4>
+                <p>Création, listing et gestion des clés cryptographiques (privées/publiques) sur le HSM.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h4>Chiffrement</h4>
+                <p>Opérations de chiffrement et déchiffrement utilisant les clés stockées dans le HSM.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-signature"></i>
+                </div>
+                <h4>Signature Numérique</h4>
+                <p>Génération et vérification de signatures cryptographiques pour l'authentification.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-fingerprint"></i>
+                </div>
+                <h4>Fonctions de Hachage</h4>
+                <p>Calcul de hash cryptographiques (SHA-256, etc.) pour l'intégrité des données.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h4>Analyse & Comparaison</h4>
+                <p>Comparaison des performances et analyse des résultats des opérations cryptographiques.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Sécurité HSM</h4>
+                <p>Utilisation d'un module de sécurité matériel pour les opérations critiques.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; background: #f0f8ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #007bff;">
+            <h4><i class="fas fa-info-circle"></i> Comment commencer ?</h4>
+            <p style="margin: 0.5rem 0;">1. Accédez à <strong>Opérations Création</strong> pour générer vos premières clés</p>
+            <p style="margin: 0.5rem 0;">2. Consultez <strong>Opérations Listing</strong> pour voir toutes les clés disponibles</p>
+            <p style="margin: 0.5rem 0;">3. Testez les différentes opérations cryptographiques via les onglets dédiés</p>
+        </div>
     </div>
 </div>
 </body>

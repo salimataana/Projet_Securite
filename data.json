@@ -7,7 +7,7 @@
                 "operation_type": "decrypt_data"
             },
             {
-                "algorithm": "RSA_PKCS",
+                "algorithm": "RSA",
                 "data_lenth": 16,
                 "duration": 0.0003840923309326172,
                 "operation_type": "encrypt_data"
@@ -19,13 +19,13 @@
                 "operation_type": "hash"
             },
             {
-                "algorithm": "RSA_PKCS",
+                "algorithm": "RSA",
                 "data_lenth": 25,
                 "duration": 0.0002295970916748047,
                 "operation_type": "encrypt_data"
             },
             {
-                "algorithm": "RSA_PKCS",
+                "algorithm": "RSA",
                 "data_lenth": 25,
                 "duration": 0.0001735687255859375,
                 "operation_type": "encrypt_data"
@@ -36,16 +36,313 @@
                 "operation_type": "decrypt_data"
             },
             {
-                "algorithm": 0,
-                "data_lenth": 12,
-                "duration": 0.00024366378784179688,
-                "operation_type": "encrypt_data"
-            },
-            {
                 "algorithm": "RSA",
                 "data_lenth": 12,
                 "duration": 0.00027298927307128906,
                 "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0002601146697998047,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.014396190643310547,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.007662296295166016,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.009680509567260742,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "sha1",
+                "data_lenth": 7,
+                "duration": 4.410743713378906e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "sha1",
+                "data_lenth": 7,
+                "duration": 1.9073486328125e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "sha1",
+                "data_lenth": 8,
+                "duration": 1.9788742065429688e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "sha1",
+                "data_lenth": 7,
+                "duration": 2.1219253540039062e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0013990402221679688,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "sha256",
+                "data_lenth": 5,
+                "duration": 0.0812380313873291,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 64,
+                "duration": 0.0022852420806884766,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "sha256",
+                "data_lenth": 7,
+                "duration": 0.0001862049102783203,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 64,
+                "duration": 0.010066509246826172,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "sha256",
+                "data_lenth": 40,
+                "duration": 7.271766662597656e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "md5",
+                "data_lenth": 0,
+                "duration": 9.012222290039062e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0015239715576171875,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0013751983642578125,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.001028299331665039,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0015718936920166016,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0016863346099853516,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.009592056274414062,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.001341104507446289,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.014331817626953125,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "md5",
+                "data_lenth": 6,
+                "duration": 5.7697296142578125e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.0067882537841796875,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.008238792419433594,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.009668350219726562,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.002718687057495117,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.010190248489379883,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "sha512",
+                "data_lenth": 8,
+                "duration": 0.11210513114929199,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.0069732666015625,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 32,
+                "duration": 0.0021333694458007812,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "md5",
+                "data_lenth": 5,
+                "duration": 5.650520324707031e-05,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0003418922424316406,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0012900829315185547,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0013575553894042969,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.002451181411743164,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 22,
+                "duration": 0.013083696365356445,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.001522064208984375,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.007936477661132812,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0016751289367675781,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.011096715927124023,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 22,
+                "duration": 0.009493112564086914,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "sha256",
+                "data_lenth": 19,
+                "duration": 0.03872060775756836,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0005514621734619141,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 514,
+                "duration": 0.008400201797485352,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": "RSA",
+                "data_lenth": 14,
+                "duration": 0.0011086463928222656,
+                "operation_type": "encrypt_data"
+            },
+            {
+                "data_lenth": 512,
+                "duration": 0.0032470226287841797,
+                "operation_type": "decrypt_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 22,
+                "duration": 0.005980730056762695,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": 1,
+                "data_lenth": 22,
+                "duration": 0.002798318862915039,
+                "operation_type": "sign_data"
+            },
+            {
+                "algorithm": "sha512",
+                "data_lenth": 5,
+                "duration": 0.08125996589660645,
+                "operation_type": "hash"
+            },
+            {
+                "algorithm": "md5",
+                "data_lenth": 6,
+                "duration": 4.458427429199219e-05,
+                "operation_type": "hash"
             }
         ]
     }

@@ -5,28 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opérations Cryptographiques - HSM Crypto Manager</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        table.table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border: 2px solid black;
+        }
+        table.table th {
+            background-color: black;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid black;
+            font-weight: 600;
+        }
+        table.table td {
+            border: 1px solid black;
+            padding: 10px;
+            color: #333;
+        }
+        table.table tbody tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+        table.table tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+        table.table td.italic {
+            font-style: italic;
+            color: #777;
+        }
+        table.table td.center {
+            text-align: center;
+        }
+        .section-header {
+            margin: 1.5rem 0 0.5rem 0;
+            border-bottom: 2px solid black;
+            padding-bottom: 5px;
+        }
+        .section-header h4 {
+            margin: 0;
+            color: black;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <!-- En-tête -->
     <div class="header">
         <h1>HSM Crypto Manager</h1>
         <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
 
-        <!-- Boutons de navigation -->
         <div class="nav-links">
-            <a href="/" class="nav-link nav-dark">Accueil</a>
+            <a href="/" class="nav-link nav-primary">Accueil</a>
             <a href="/operations_creation" class="nav-link nav-primary">Opérations Création</a>
-            <a href="/operations_listing" class="nav-link nav-primary">Opérations Listing</a>
+            <a href="/operations_listing" class="nav-link nav-dark">Opérations Listing</a>
             <a href="/operations_chiffrement" class="nav-link nav-primary">Opérations Chiffrement</a>
             <a href="/operations_signature" class="nav-link nav-primary">Opérations Signature</a>
             <a href="/operations_hashage" class="nav-link nav-primary">Opérations Hashage</a>
             <a href="/operations_signature_hashage" class="nav-link nav-primary">Opérations Signature Hashage</a>
-            <a href="/operations_analysis" class="nav-link nav-info">Analyse & Comparaison</a>
+            <a href="/operations_analysis" class="nav-link nav-primary">Analyse & Comparaison</a>
         </div>
     </div>
 
-    <!-- Liste des clés -->
     <div class="card">
         <div class="card-header">
             <h3>Clés disponibles</h3>
@@ -35,63 +77,63 @@
             Visualisez les clés privées et publiques présentes sur le HSM.
         </p>
 
-        <!-- Tableau des clés privées -->
-        <h4>Clés privées</h4>
+        <div class="section-header">
+            <h4>Clés privées</h4>
+        </div>
         <table class="table">
             <thead>
-            <tr>
-                <th>Label</th>
-                <th>ID</th>
-            </tr>
+                <tr>
+                    <th>Label</th>
+                    <th>Index</th>
+                </tr>
             </thead>
             <tbody>
             {% if private_keys %}
                 {% for key in private_keys %}
                     <tr>
-                        <td>{{ key.label or "(sans label)" }}</td>
-                        <td>{{ key.id }}</td>
+                        <td class="{{ 'italic' if not key.label }}">{{ key.label or "(sans label)" }}</td>
+                        <td>#{{ loop.index }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="2">Aucune clé privée trouvée.</td>
+                    <td colspan="2" class="center">Aucune clé privée trouvée.</td>
                 </tr>
             {% endif %}
             </tbody>
         </table>
 
-        <!-- Tableau des clés publiques -->
-        <h4 style="margin-top: 2rem;">Clés publiques</h4>
+        <div class="section-header">
+            <h4>Clés publiques</h4>
+        </div>
         <table class="table">
             <thead>
-            <tr>
-                <th>Label</th>
-                <th>ID</th>
-            </tr>
+                <tr>
+                    <th>Label</th>
+                    <th>Index</th>
+                </tr>
             </thead>
             <tbody>
             {% if public_keys %}
                 {% for key in public_keys %}
                     <tr>
-                        <td>{{ key.label or "(sans label)" }}</td>
-                        <td>{{ key.id }}</td>
+                        <td class="{{ 'italic' if not key.label }}">{{ key.label or "(sans label)" }}</td>
+                        <td>#{{ loop.index }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="2">Aucune clé publique trouvée.</td>
+                    <td colspan="2" class="center">Aucune clé publique trouvée.</td>
                 </tr>
             {% endif %}
             </tbody>
         </table>
 
-        <p class="section-description" style="font-size: 0.9rem; margin-top: 10px;">
+       <!-- <p class="section-description" style="font-size: 0.9rem; margin-top: 10px;">
             Les clés désactivées apparaissent également dans ces listes. Gérez leur statut depuis la page
             « Gestion des clés » si nécessaire.
-        </p>
+        </p> -->
     </div>
-
-
 </div>
 
 <script src="/static/app.js"></script>

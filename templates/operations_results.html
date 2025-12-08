@@ -3,37 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opérations Cryptographiques - HSM Crypto Manager</title>
+    <title>Résultat - HSM Crypto Manager</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .result-box {
+            background: white;
+            border: 2px solid black;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .result-title {
+            color: black;
+            border-bottom: 2px solid black;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        .data-display {
+            background: #f8f8f8;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin: 1rem 0;
+            font-family: monospace;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            color: black; /* Texte en noir */
+            font-size: 1rem;
+        }
+        .btn-simple {
+            display: inline-block;
+            background: black;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            border: 2px solid black;
+            margin-top: 1.5rem;
+            font-weight: 500;
+        }
+        .btn-simple:hover {
+            background: white;
+            color: black;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h3 {
+            color: black;
+            margin-bottom: 0.5rem;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <!-- En-tête -->
+    <!-- En-tête simple -->
     <div class="header">
         <h1>HSM Crypto Manager</h1>
-        <p>Opérations cryptographiques : clés, signature, chiffrement, hachage</p>
-
-        <!-- Boutons de navigation -->
-      <div class="nav-links">
-
-        </div>
+        <p>Résultat de l'opération</p>
+        <a href="/operations_chiffrement" class="btn-simple">← Retour</a>
     </div>
 
-    <div class="header">
-        <h1>Response</h1>
-      {% if data_encrypted %}
-            <p>La donnée decrytpée : {{ data_encrypted }}</p>
+    <!-- Cadre des résultats -->
+    <div class="result-box">
+        <h2 class="result-title">RÉSULTATS</h2>
+
+        {% if data_encrypted %}
+        <div>
+            <h3>Donnée chiffrée :</h3>
+            <div class="data-display">{{ data_encrypted }}</div>
+        </div>
         {% endif %}
 
         {% if data_decrypted %}
-            <p>La variable data_decrypted : {{ data_decrypted }}</p>
+        <div>
+            <h3>Donnée déchiffrée :</h3>
+            <div class="data-display">{{ data_decrypted }}</div>
+        </div>
         {% endif %}
+
+        <!-- Bouton de retour -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/operations_chiffrement" class="btn-simple">← Retour au chiffrement</a>
+        </div>
     </div>
-
-
-
 </div>
-
-
 </body>
 </html>

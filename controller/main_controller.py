@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template
-
 from core.analysis_manager import AnalysisManager
 from core.hsm_manager import HSMManager
 

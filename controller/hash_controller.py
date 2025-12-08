@@ -2,13 +2,7 @@
 
 
 from flask import request, jsonify
-
-
-
-
-
 from flask import Blueprint, render_template
-
 from core.hash_manager import HashManager
 
 hash_controller = Blueprint('hash', __name__, template_folder='../templates')
